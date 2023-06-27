@@ -111,7 +111,10 @@ local function DoAOESlap(inst)
 				math.abs(vz * dx - vx * dz) < SLAP_BEAM_WID + physrad and
 				inst.components.combat:CanTarget(v)
 				then
+				local noimpactsound = v.components.combat.noimpactsound
+				v.components.combat.noimpactsound = true
 				inst.components.combat:DoAttack(v)
+				v.components.combat.noimpactsound = noimpactsound
 			end
 		end
 	end
@@ -384,10 +387,8 @@ local states =
 			FrameEvent(10, function(inst) SetShadowScale(inst, .5) end),
 			FrameEvent(11, function(inst) SetSpawnShadowScale(inst, 1) end),
 			FrameEvent(36, function(inst) SetSpawnShadowScale(inst, .75) end),
-			FrameEvent(38, function(inst)
-				SetSpawnShadowScale(inst, .5)
-				inst.SoundEmitter:PlaySound("rifts2/thrall_generic/death_pop")
-			end),
+			FrameEvent(37, function(inst) inst.SoundEmitter:PlaySound("rifts2/thrall_generic/death_pop") end),
+			FrameEvent(38, function(inst) SetSpawnShadowScale(inst, .5) end),
 			FrameEvent(40, function(inst) SetSpawnShadowScale(inst, .25) end),
 			FrameEvent(41, function(inst) inst.DynamicShadow:Enable(false) end),
 			FrameEvent(44, function(inst)
@@ -473,7 +474,11 @@ local states =
 			if not inst.AnimState:IsCurrentAnimation("walk_loop") then
 				inst.AnimState:PlayAnimation("walk_loop", true)
 			end
-			inst.SoundEmitter:PlaySound("rifts2/thrall_generic/vocalization_small")
+			local t = GetTime()
+			if t > (inst.sg.mem.nextwalkvocal or 0) then
+				inst.SoundEmitter:PlaySound("rifts2/thrall_generic/vocalization_small")
+				inst.sg.mem.nextwalkvocal = t + .5 + math.random()
+			end
 			inst.sg:SetTimeout(inst.AnimState:GetCurrentAnimationLength())
 		end,
 
@@ -566,13 +571,26 @@ local states =
 				inst.sg.statemem.tracking = false
 			end),
 			FrameEvent(9, function(inst)
-				if inst.sg.statemem.targetpos ~= nil then
-					local dist = math.sqrt(inst:GetDistanceSqToPoint(inst.sg.statemem.targetpos))
-					--max dist 9; 30 fps; 20 frames at full speed
-					inst.sg.statemem.speed = math.min(9, dist) * 30 / 20
-				else
-					inst.sg.statemem.speed = 7.5 * 30 / 20
+				local x, y, z = inst.Transform:GetWorldPosition()
+				local targetdist =
+					inst.sg.statemem.targetpos ~= nil and
+					math.min(9, math.sqrt(distsq(x, z, inst.sg.statemem.targetpos.x, inst.sg.statemem.targetpos.z))) or
+					7.5
+				local theta = inst.Transform:GetRotation() * DEGREES
+				local costheta = math.cos(theta)
+				local sintheta = math.sin(theta)
+				local physrad = inst:GetPhysicsRadius(0)
+				targetdist = targetdist + physrad
+				local dist = math.min(1, targetdist)
+				while dist < targetdist do
+					if not TheWorld.Map:IsPassableAtPoint(x + costheta * dist, 0, z - sintheta * dist) then
+						break
+					end
+					dist = math.min(targetdist, dist + 0.5)
 				end
+				dist = math.max(1, dist - physrad)
+				-- 30 fps; 20 frames at full speed
+				inst.sg.statemem.speed = dist * 30 / 20
 				inst.Physics:SetMotorVelOverride(inst.sg.statemem.speed, 0, 0)
 			end),
 			FrameEvent(10, function(inst)
@@ -580,7 +598,6 @@ local states =
 				SetTeamAttackCooldown(inst, true)
 				inst.sg:AddStateTag("nointerrupt")
 			end),
-			--FrameEvent(28, function(inst) inst.SoundEmitter:PlaySound("dontstarve/common/teleportworm/swallow") end),
 			FrameEvent(29, function(inst)
 				SetTeamAttackCooldown(inst)
 				inst.SoundEmitter:PlaySound("rifts2/thrall_horns/jump_f31")
@@ -596,6 +613,10 @@ local states =
 				DoFaceplantShake(inst)
 				DoAOEWork(inst, 0, TUNING.SHADOWTHRALL_HORNS_FACEPLANT_RADIUS, inst.sg.statemem.targets)
 				inst.sg.statemem.devoured = DoAOEAttack(inst, 0, TUNING.SHADOWTHRALL_HORNS_FACEPLANT_RADIUS, 1.3, 1, false, inst.sg.statemem.targets, inst.sg.statemem.devoured == nil) or inst.sg.statemem.devoured
+				if inst.sg.statemem.devoured then
+					inst.SoundEmitter:PlaySound("dontstarve/common/teleportworm/swallow")
+					inst.SoundEmitter:PlaySound("rifts2/thrall_horns/wormhole_amb", "devour_loop")
+				end
 			end),
 			FrameEvent(33, function(inst) inst.Physics:SetMotorVelOverride(.4 * inst.sg.statemem.speed, 0, 0) end),
 			FrameEvent(35, function(inst) inst.Physics:SetMotorVelOverride(.2 * inst.sg.statemem.speed, 0, 0) end),
@@ -624,6 +645,7 @@ local states =
 
 		onexit = function(inst)
 			if not inst.sg.statemem.jumping then
+				inst.SoundEmitter:KillSound("devour_loop")
 				inst.Physics:ClearMotorVelOverride()
 				inst.Physics:Stop()
 				DoSpitOut(inst, inst.sg.statemem.devoured)
@@ -651,6 +673,8 @@ local states =
 				inst.Physics:Stop()
 				inst.sg:RemoveStateTag("jumping")
 			end),
+			FrameEvent(8, function(inst) inst.SoundEmitter:PlaySound("rifts2/thrall_horns/spit_f14", nil, .7) end),
+			FrameEvent(14, function(inst) inst.SoundEmitter:KillSound("devour_loop") end),
 		},
 
 		events =
@@ -663,6 +687,7 @@ local states =
 		},
 
 		onexit = function(inst)
+			inst.SoundEmitter:KillSound("devour_loop")
 			if inst.sg:HasStateTag("jumping") then
 				inst.Physics:ClearMotorVelOverride()
 				inst.Physics:Stop()
@@ -686,6 +711,7 @@ local states =
 				inst.Physics:Stop()
 				inst.sg:RemoveStateTag("jumping")
 			end),
+			FrameEvent(8, function(inst) inst.SoundEmitter:PlaySound("rifts2/thrall_horns/spit_f14") end),
 			FrameEvent(22, function(inst)
 				SetTeamAttackCooldown(inst)
 				DoChew(inst, inst.sg.statemem.devoured)
@@ -696,6 +722,7 @@ local states =
 			FrameEvent(55, function(inst) inst.SoundEmitter:PlaySound("rifts2/thrall_horns/spit_f46") end),
 			FrameEvent(58, function(inst) DoChew(inst, inst.sg.statemem.devoured, true) end),
 			FrameEvent(58, function(inst)
+				inst.SoundEmitter:KillSound("devour_loop")
 				local devoured = inst.sg.statemem.devoured
 				inst.sg.statemem.devoured = nil
 				DoSpitOut(inst, devoured)
@@ -713,6 +740,7 @@ local states =
 		},
 
 		onexit = function(inst)
+			inst.SoundEmitter:KillSound("devour_loop")
 			if inst.sg:HasStateTag("jumping") then
 				inst.Physics:ClearMotorVelOverride()
 				inst.Physics:Stop()
@@ -737,18 +765,22 @@ local states =
 
 		timeline =
 		{
-			FrameEvent(12, PlaySlapSound),
+			FrameEvent(8, PlaySlapSound),
 			FrameEvent(14, function(inst)
 				SetTeamAttackCooldown(inst, true)
 				DoAOESlap(inst)
 			end),
-			FrameEvent(18, PlaySlapSound),
+			--
+			FrameEvent(14, PlaySlapSound),
 			FrameEvent(20, DoAOESlap),
-			FrameEvent(30, PlaySlapSound),
+			--
+			FrameEvent(26, PlaySlapSound),
 			FrameEvent(32, DoAOESlap),
-			FrameEvent(34, PlaySlapSound),
+			--
+			FrameEvent(30, PlaySlapSound),
 			FrameEvent(36, DoAOESlap),
-			FrameEvent(40, PlaySlapSound),
+			--
+			FrameEvent(36, PlaySlapSound),
 			FrameEvent(42, function(inst)
 				SetTeamAttackCooldown(inst)
 				DoAOESlap(inst)

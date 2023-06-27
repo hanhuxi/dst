@@ -19,13 +19,13 @@ local function MakeHat(name)
     local swap_data = { bank = symname, anim = "anim" }
 
 	-- do not pass this function to equippable:SetOnEquip as it has different a parameter listing
-	local function _base_onequip(inst, owner, symbol_override)
+	local function _base_onequip(inst, owner, symbol_override, swap_hat_override)
 		local skin_build = inst:GetSkinBuild()
 		if skin_build ~= nil then
 			owner:PushEvent("equipskinneditem", inst:GetSkinName())
-			owner.AnimState:OverrideItemSkinSymbol("swap_hat", skin_build, symbol_override or "swap_hat", inst.GUID, fname)
+			owner.AnimState:OverrideItemSkinSymbol(swap_hat_override or "swap_hat", skin_build, symbol_override or "swap_hat", inst.GUID, fname)
 		else
-			owner.AnimState:OverrideSymbol("swap_hat", fname, symbol_override or "swap_hat")
+			owner.AnimState:OverrideSymbol(swap_hat_override or "swap_hat", fname, symbol_override or "swap_hat")
 		end
 
 		if inst.components.fueled ~= nil then
@@ -60,6 +60,8 @@ local function MakeHat(name)
         if owner:HasTag("player") then
             owner.AnimState:Hide("HEAD")
             owner.AnimState:Show("HEAD_HAT")
+			owner.AnimState:Show("HEAD_HAT_NOHELM")
+			owner.AnimState:Hide("HEAD_HAT_HELM")
         end
     end
 
@@ -83,6 +85,8 @@ local function MakeHat(name)
         if owner:HasTag("player") then
             owner.AnimState:Show("HEAD")
             owner.AnimState:Hide("HEAD_HAT")
+			owner.AnimState:Hide("HEAD_HAT_NOHELM")
+			owner.AnimState:Hide("HEAD_HAT_HELM")
         end
 
         if inst.components.fueled ~= nil then
@@ -108,22 +112,37 @@ local function MakeHat(name)
 
         owner.AnimState:Show("HEAD")
         owner.AnimState:Hide("HEAD_HAT")
+		owner.AnimState:Hide("HEAD_HAT_NOHELM")
+		owner.AnimState:Hide("HEAD_HAT_HELM")
     end
 
 	fns.fullhelm_onequip = function(inst, owner)
-		_base_onequip(inst, owner)
-
-		owner.AnimState:Show("HAT")
-		owner.AnimState:Hide("HAIR_HAT")
-		owner.AnimState:Hide("HAIR_NOHAT")
-		owner.AnimState:Hide("HAIR")
-
 		if owner:HasTag("player") then
+			_base_onequip(inst, owner, nil, "headbase_hat")
+
+			owner.AnimState:Hide("HAT")
+			owner.AnimState:Hide("HAIR_HAT")
+			owner.AnimState:Hide("HAIR_NOHAT")
+			owner.AnimState:Hide("HAIR")
+
 			owner.AnimState:Hide("HEAD")
-			owner.AnimState:Hide("HEAD_HAT")
+			owner.AnimState:Show("HEAD_HAT")
+			owner.AnimState:Hide("HEAD_HAT_NOHELM")
+			owner.AnimState:Show("HEAD_HAT_HELM")
+
 			owner.AnimState:HideSymbol("face")
 			owner.AnimState:HideSymbol("swap_face")
 			owner.AnimState:HideSymbol("beard")
+			owner.AnimState:HideSymbol("cheeks")
+
+			owner.AnimState:UseHeadHatExchange(true)
+		else
+			_base_onequip(inst, owner)
+
+			owner.AnimState:Show("HAT")
+			owner.AnimState:Hide("HAIR_HAT")
+			owner.AnimState:Hide("HAIR_NOHAT")
+			owner.AnimState:Hide("HAIR")
 		end
 	end
 
@@ -134,6 +153,9 @@ local function MakeHat(name)
 			owner.AnimState:ShowSymbol("face")
 			owner.AnimState:ShowSymbol("swap_face")
 			owner.AnimState:ShowSymbol("beard")
+			owner.AnimState:ShowSymbol("cheeks")
+
+			owner.AnimState:UseHeadHatExchange(false)
 		end
 	end
 
@@ -2925,7 +2947,7 @@ local function MakeHat(name)
 
 	local function dreadstone_doregen(inst, owner)
 		if owner.components.sanity ~= nil and owner.components.sanity:IsInsanityMode() then
-			local setbonus = inst.components.setbonus ~= nil and inst.components.setbonus:IsEnabled() and TUNING.ARMOR_DREADSTONE_REGEN_SETBONUS or 1
+			local setbonus = inst.components.setbonus ~= nil and inst.components.setbonus:IsEnabled(EQUIPMENTSETNAMES.DREADSTONE) and TUNING.ARMOR_DREADSTONE_REGEN_SETBONUS or 1
 			local rate = 1 / Lerp(1 / TUNING.ARMOR_DREADSTONE_REGEN_MAXRATE, 1 / TUNING.ARMOR_DREADSTONE_REGEN_MINRATE, owner.components.sanity:GetPercent())
 			inst.components.armor:Repair(inst.components.armor.maxcondition * rate * setbonus)
 		end
@@ -3187,7 +3209,6 @@ local function MakeHat(name)
 		end
 		inst.fx = SpawnPrefab("voidclothhat_fx")
 		inst.fx:AttachToOwner(owner)
-		owner.AnimState:SetSymbolBrightness("headbase_hat", 0)
 	end
 
 	fns.voidcloth_onunequip = function(inst, owner)
@@ -3197,11 +3218,11 @@ local function MakeHat(name)
 			inst.fx:Remove()
 			inst.fx = nil
 		end
-		owner.AnimState:SetSymbolBrightness("headbase_hat", 1)
 	end
 
 	fns.voidcloth_custom_init = function(inst)
 		inst:AddTag("cloth")
+		inst:AddTag("shadow_item")
 
 		--shadowlevel (from shadowlevel component) added to pristine state for optimization
 		inst:AddTag("shadowlevel")
@@ -3564,14 +3585,15 @@ local function FollowFx_OnRemoveEntity(inst)
 	end
 end
 
-local function SpawnFollowFxForOwner(inst, owner, createfn, framebegin, frameend)
+local function SpawnFollowFxForOwner(inst, owner, createfn, framebegin, frameend, isfullhelm)
+	local follow_symbol = isfullhelm and owner:HasTag("player") and "headbase_hat" or "swap_hat"
 	inst.fx = {}
 	local frame
 	for i = framebegin, frameend do
 		local fx = createfn(i)
 		frame = frame or math.random(fx.AnimState:GetCurrentAnimationNumFrames()) - 1
 		fx.entity:SetParent(owner.entity)
-		fx.Follower:FollowSymbol(owner.GUID, "swap_hat", nil, nil, nil, true, nil, i - 1)
+		fx.Follower:FollowSymbol(owner.GUID, follow_symbol, nil, nil, nil, true, nil, i - 1)
 		fx.AnimState:SetFrame(frame)
 		fx.components.highlightchild:SetOwner(owner)
 		table.insert(inst.fx, fx)
@@ -3579,11 +3601,11 @@ local function SpawnFollowFxForOwner(inst, owner, createfn, framebegin, frameend
 	inst.OnRemoveEntity = FollowFx_OnRemoveEntity
 end
 
-local function MakeFollowFx(name, createfn, common_postinit, master_postinit, framebegin, frameend, assets, prefabs)
+local function MakeFollowFx(name, data)
 	local function OnEntityReplicated(inst)
 		local owner = inst.entity:GetParent()
 		if owner ~= nil then
-			SpawnFollowFxForOwner(inst, owner, createfn, framebegin, frameend)
+			SpawnFollowFxForOwner(inst, owner, data.createfn, data.framebegin, data.frameend, data.isfullhelm)
 		end
 	end
 
@@ -3591,7 +3613,7 @@ local function MakeFollowFx(name, createfn, common_postinit, master_postinit, fr
 		inst.entity:SetParent(owner.entity)
 		--Dedicated server does not need to spawn the local fx
 		if not TheNet:IsDedicated() then
-			SpawnFollowFxForOwner(inst, owner, createfn, framebegin, frameend)
+			SpawnFollowFxForOwner(inst, owner, data.createfn, data.framebegin, data.frameend, data.isfullhelm)
 		end
 	end
 
@@ -3603,8 +3625,8 @@ local function MakeFollowFx(name, createfn, common_postinit, master_postinit, fr
 
 		inst:AddTag("FX")
 
-		if common_postinit ~= nil then
-			common_postinit(inst)
+		if data.common_postinit ~= nil then
+			data.common_postinit(inst)
 		end
 
 		inst.entity:SetPristine()
@@ -3618,14 +3640,14 @@ local function MakeFollowFx(name, createfn, common_postinit, master_postinit, fr
 		inst.AttachToOwner = AttachToOwner
 		inst.persists = false
 
-		if master_postinit ~= nil then
-			master_postinit(inst)
+		if data.master_postinit ~= nil then
+			data.master_postinit(inst)
 		end
 
 		return inst
 	end
 
-	return Prefab(name, fn, assets, prefabs)
+	return Prefab(name, fn, data.assets, data.prefabs)
 end
 
 --------------------------------------------------------------------------
@@ -3718,8 +3740,21 @@ return  MakeHat("straw"),
 		MakeHat("lunarplant"),
 		MakeHat("voidcloth"),
 
-		MakeFollowFx("lunarplanthat_fx", lunarplanthat_CreateFxFollowFrame, nil, nil, 1, 3, { Asset("ANIM", "anim/hat_lunarplant.zip") }),
-		MakeFollowFx("voidclothhat_fx", voidclothhat_CreateFxFollowFrame, voidclothhat_fx_common_postinit, nil, 1, 3, { Asset("ANIM", "anim/hat_voidcloth.zip") }),
+		MakeFollowFx("lunarplanthat_fx", {
+			createfn = lunarplanthat_CreateFxFollowFrame,
+			framebegin = 1,
+			frameend = 3,
+			isfullhelm = true,
+			assets = { Asset("ANIM", "anim/hat_lunarplant.zip") },
+		}),
+		MakeFollowFx("voidclothhat_fx", {
+			createfn = voidclothhat_CreateFxFollowFrame,
+			common_postinit = voidclothhat_fx_common_postinit,
+			framebegin = 1,
+			frameend = 3,
+			isfullhelm = true,
+			assets = { Asset("ANIM", "anim/hat_voidcloth.zip") }
+		}),
 
         Prefab("minerhatlight", minerhatlightfn),
         Prefab("alterguardianhatlight", alterguardianhatlightfn),

@@ -584,8 +584,7 @@ STRINGS =
 			WHEELSPIN_STOP = "Press",
             PICK_FLOWER = "Pick Flower From",
             EQUIPMENTSWAP = "Swap Clothes",
-            SPIN = "Spin",
-            SCRAPBOOK = "Add to Scrapbook",
+            SPIN = "Spin",            
         },
 
 		OPEN_CRAFTING =
@@ -630,6 +629,7 @@ STRINGS =
         {
             GENERIC = "Learn",
             READ = "Read",
+            SCRAPBOOK = "Add to Scrapbook",
         },
         TURNON = "Turn On",
         TURNOFF =
@@ -5242,8 +5242,8 @@ STRINGS =
     },
     STALKER_ATRIUM_BATTLECRY_ATRIUM_REPAIRED =
     {
-        "You fools! What have you done?",
-        "You've doomed yourselves.",
+        "This world is unraveling.",
+        "It's all happening again...",
         "I tried to stop it... it seems I learned nothing...",
     },    
     STALKER_ATRIUM_PLAYER_BATTLECRY =
@@ -5254,14 +5254,15 @@ STRINGS =
         "They are coming. It cannot be stopped.",
         "This world's fabric is frayed and torn.",
         "They are unfathomable.",
-        "I will save you."
+        "I will save you.",
     },
     STALKER_ATRIUM_PLAYER_BATTLECRY_ATRIUM_REPAIRED =
     {
-        "This world is unraveling.",
+        "You fools! What have you done?",
+        "You've doomed yourselves.",
         "You have brought about your own end.",
         "Please. Let me save you from what is coming.",
-        "I recognize your arrogance. I possessed it myself...",
+        "I recognize your arrogance. I possessed it myself.",
     },    
     STALKER_ATRIUM_SUMMON_MINIONS =
     {
@@ -5314,11 +5315,12 @@ STRINGS =
     },
     STALKER_ATRIUM_DEATHCRY_ATRIUM_REPAIRED =
     {
-        "What have you done?",
-        "You've doomed us all!",
+        "They will not show mercy as I have.",
+        "You will understand. But it's already too late.",
         "I couldn't stop it...",
-        "History will repeat itself...",     
+        "History will repeat itself...",
         "It will all come to pass again...",
+        "You've made your choice.",
     },
 
     --Arena Event
@@ -6228,7 +6230,7 @@ STRINGS =
     WAGSTAFF_NPC_CAPTURESTOP = "Thank you for all your hard work.",
     WAGSTAFF_NPC_CAPTURESTOP1 = "This will increase the power output exponentially!",
     WAGSTAFF_NPC_CAPTURESTOP2 = "Now if you'll excuse me, I have much to do.",
-    WAGSTAFF_NPC_CAPTURESTOP3 = "you and I are about to change the world",
+    WAGSTAFF_NPC_CAPTURESTOP3 = "You and I are about to change the world!",
 
     WAGSTAFF_NPC_REQUEST = {"Incredible! It's just as I surmised!",
                             "If I could just push its output a bit further...",
@@ -9192,6 +9194,8 @@ STRINGS.UI =
         SUMMERHOUNDS = "Fire Hound Waves",
         RIFTS_FREQUENCY = "Wild Rift Frequency",
         RIFTS_ENABLED = "Wild Rifts Enabled",
+        RIFTS_FREQUENCY_CAVE = "Wild Rift Frequency",
+        RIFTS_ENABLED_CAVE = "Wild Rifts Enabled",
         HOUNDMOUND = "Hound Mounds",
         MERMS = "Merms",
         TENTACLES = "Tentacles",
@@ -12699,13 +12703,20 @@ STRINGS.UI =
         PLAY_TOGETHER_BODY = "You can join a server or host your own. Invitations will be sent to the rest of your party once you are in the game.",
     },
     
-    STARTRIFTS =
+    START_SHADOW_RIFTS =
     {
-        TITLE  = "Are you sure?", -- TODO
-        BODY   = "This is an irreversible action!", -- TODO
-        OK     = "Go ahead", -- TODO
-        CANCEL = "Cancel", -- TODO
+        TITLE  = "The Price of Ambition",
+        BODY   = "Be warned, assisting the Shadow Queen will alter your world and cannot be undone. Beautiful, terrible things will rise to the surface.\n\nAre you sure you'd like to continue?",
+        OK     = "I'm ready!",
+        CANCEL = "Let me think about it.",
     },
+    START_LUNAR_RIFTS =
+    {
+        TITLE  = "The Price of Ambition",
+        BODY   = "Be warned, assisting the Cryptic Founder will alter your world and cannot be undone. Much will be lost and gained in the name of Progress.\n\nAre you sure you'd like to continue?",
+        OK     = "I'm ready!",
+        CANCEL = "Let me think about it.",
+    },    
 }
 
 --these are broken out into their own files for ease of editing
@@ -14390,7 +14401,7 @@ STRINGS.SCRAPBOOK = {
         ELEMENT = "Element",
         WEAPON = "Weapon",
         ARMOR = "Armor",
-        ELIXER = "Elixer",
+        ELIXER = "Elixir",
         CLOTHING = "Clothing",
         HAT = "Hat",
         BATTLESONG = "Battlesong",

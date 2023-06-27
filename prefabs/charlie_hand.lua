@@ -5,7 +5,7 @@ local assets =
 
 local prefabs =
 {
-    "enable_rift_construction_container",
+    "enable_shadow_rift_construction_container",
 }
 
 ----------------------------------------------------------------------------
@@ -146,6 +146,13 @@ local function OnLoadPostPass(inst, data)
             inst:OnAtriumPowered(atrium.components.pickable ~= nil and atrium.components.pickable.caninteractwith)
         end)
     end
+
+    -- Remove us if shadow rifts are already active or should not be possible to activate.
+    if TUNING.SPAWN_RIFTS ~= 1 then
+    	inst.persists = false
+        inst:Hide()
+        inst:DoTaskInTime(0, inst.Remove)
+    end
 end
 
 local function OnRemove(inst)
@@ -203,7 +210,7 @@ local function CharlieHandFn()
     inst:AddComponent("inspectable")
 
     local constructionsite = inst:AddComponent("constructionsite")
-    constructionsite:SetConstructionPrefab("enable_rift_construction_container")
+    constructionsite:SetConstructionPrefab("enable_shadow_rift_construction_container")
     constructionsite:SetOnConstructedFn(ConstructionSite_OnConstructed)
 
     local locomotor = inst:AddComponent("locomotor")
@@ -235,8 +242,14 @@ local function EnableRiftContainerFn()
     inst.entity:AddTransform()
     inst.entity:AddNetwork()
 
+	inst:AddTag("bundle")
+
+	-- Offer action strings.
+	inst:AddTag("offerconstructionsite")
+
     -- Blank string for controller action prompt.
     inst.name = " "
+	inst.POPUP_STRINGS = STRINGS.UI.START_SHADOW_RIFTS
 
     inst.entity:SetPristine()
 
@@ -245,7 +258,7 @@ local function EnableRiftContainerFn()
     end
 
     inst:AddComponent("container")
-    inst.components.container:WidgetSetup("enable_rift_construction_container")
+    inst.components.container:WidgetSetup("enable_shadow_rift_construction_container")
 
     inst.persists = false
 
@@ -256,5 +269,5 @@ end
 
 
 return
-        Prefab("charlie_hand",                          CharlieHandFn,          assets, prefabs ),
-        Prefab("enable_rift_construction_container",    EnableRiftContainerFn                   )
+        Prefab("charlie_hand",                               CharlieHandFn,          assets, prefabs ),
+        Prefab("enable_shadow_rift_construction_container",  EnableRiftContainerFn                   )

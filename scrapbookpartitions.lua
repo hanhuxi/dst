@@ -266,6 +266,8 @@ function ScrapbookPartitions:SetInspectedByCharacter(thing, character)
     self:UpdateStorageData(hashed, newdata)
 
     UpdatePlayerScreens(thing)
+
+    self:SetViewedInScrapbook(thing, false) -- Mark as new.
 end
 
 
@@ -289,6 +291,43 @@ function ScrapbookPartitions:GetLevelFor(thing)
     return 2 -- If a thing has been seen and inspected once it is level 2.
 end
 
+function ScrapbookPartitions:TryToTeachScrapbookData(is_server, inst)
+    local unknown = {}
+    for prefab, data in pairs(scrapbook_dataset) do
+        if self:GetLevelFor(prefab) < 1 then
+            table.insert(unknown, prefab)
+        end
+    end
+
+    local learned_something = false
+    if #unknown then 
+        local numofentries = math.random(3, 4)
+        while #unknown > 0 and numofentries > 0 do
+            local choice = math.random(1, #unknown)
+
+            local ok = false
+            for i, cat in ipairs(SCRAPBOOK_CATS) do
+                if scrapbook_dataset[unknown[choice]].type == cat then
+                    ok = true
+                    break
+                end
+            end
+            if ok then
+                learned_something = true
+                self:SetSeenInGame(unknown[choice])
+                numofentries = numofentries - 1
+            end
+            table.remove(unknown, choice)
+        end
+    end
+
+    if not is_server then
+        SendRPCToServer(RPC.OnScrapbookDataTaught, inst, learned_something)
+    end
+
+    return learned_something
+end
+
 
 ------------------------------------------------------------
 -- Debug
@@ -298,14 +337,13 @@ function ScrapbookPartitions:_GetBucketForHash(hashed) -- Exporter use.
     return GetBucketForHash(hashed)
 end
 
+-- NOTES(JBK): Debug commands are not expected to run seamlessly run the command at the main menu wait for the backend timer to sync and then go through login again to properly sync up.
 function ScrapbookPartitions:DebugDeleteAllData()
     local newdata = -1
     for prefab, data in pairs(SCRAPBOOK_DATA_SET) do
         local hashed = hash(prefab)
         self:UpdateStorageData(hashed, newdata)
     end
-    self.storage = {}
-    self.dirty_buckets = {}
 end
 
 function ScrapbookPartitions:DebugSeenEverything()
@@ -381,14 +419,14 @@ function ScrapbookPartitions:UpdateStorageData(hashed, newdata)
             TheGlobalInstance._scrapbook_update_task:Cancel()
             TheGlobalInstance._scrapbook_update_task = nil
         end
-        TheGlobalInstance._scrapbook_update_task = TheGlobalInstance:DoTaskInTime(3, DoOfflineSync)
+        TheGlobalInstance._scrapbook_update_task = TheGlobalInstance:DoTaskInTime(TUNING.SCRAPBOOK_BACKEND_SYNC, DoOfflineSync)
     elseif TheInventory:HasDownloadedInventory() then
         -- Online mode and we have downloaded the inventory.
         if TheGlobalInstance._scrapbook_update_task ~= nil then
             TheGlobalInstance._scrapbook_update_task:Cancel()
             TheGlobalInstance._scrapbook_update_task = nil
         end
-        TheGlobalInstance._scrapbook_update_task = TheGlobalInstance:DoTaskInTime(3, DoBackendSync)
+        TheGlobalInstance._scrapbook_update_task = TheGlobalInstance:DoTaskInTime(TUNING.SCRAPBOOK_BACKEND_SYNC, DoBackendSync)
     end
 end
 
@@ -427,6 +465,16 @@ function ScrapbookPartitions:Save(force_save)
     end
 end
 
+function ScrapbookPartitions:MergeValues(storage, k, v)
+    if v then
+        -- Merge with what is there already.
+        storage[k] = bor(storage[k] or 0, v)
+    else
+        -- Deleted entry from debug command use.
+        storage[k] = nil
+    end
+end
+
 function ScrapbookPartitions:Load()
     --print("[ScrapbookPartitions] Load")
     local storage = {}
@@ -459,7 +507,7 @@ function ScrapbookPartitions:ApplyOnlineProfileData()
             local KVstorage = sformat("GetLocalScrapbook%d", i)
             local data = TheInventory[KVstorage](TheInventory)
             for k, v in pairs(data) do
-                storage[tonumber(k, 16)] = ReadTriStateString(v)
+                self:MergeValues(storage, tonumber(k, 16), ReadTriStateString(v))
             end
             -- TheInventory:GetLocalScrapbook() TheInventory:GetLocalScrapbook0() : Search Strings.
         end

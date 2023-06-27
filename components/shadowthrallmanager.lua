@@ -14,6 +14,7 @@ local MIASMA_RADIUS = 4.0
 local MIASMAS = 8
 local CLOSEST_FISSURE_MAXDIST_SQ = 40 * 40
 local SPAWN_THRALL_DIST = 14
+local LOADING_GRACE_TIME = 5
 
 
 self.inst = inst
@@ -36,7 +37,52 @@ local _find_fissure_task = nil
 local _internal_cooldown = 0 -- Future timestamp for when things can spawn again.
 local _dreadstone_regen_task = nil
 local _spawn_thralls_task = nil
+local _loading = nil
 
+local BADFISSURE_ONEOF_TAGS = {"structure", "blocker", "antlion_sinkhole_blocker"}
+local BADFISSURE_RADIUS = 4
+function self:IsGoodFissureLocation(pt)
+    if not _map:IsAboveGroundInSquare(pt.x, pt.y, pt.z, TILE_SCALE) then
+        return false
+    end
+
+    if TheSim:FindEntities(pt.x, pt.y, pt.z, BADFISSURE_RADIUS, nil, nil, BADFISSURE_ONEOF_TAGS)[1] then
+        return false
+    end
+
+    return true
+end
+local function IsGoodFissureLocation_Bridge(pt)
+    return self:IsGoodFissureLocation(pt)
+end
+local GOODFISSURE_DISTANCE = 30
+function self:FindGoodFissureLocation()
+    local potentials = nil
+    for _, player in ipairs(AllPlayers) do
+        local areaaware = player.components.areaaware
+        if areaaware and areaaware:CurrentlyInTag("Nightmare") then
+            local x, y, z = player.Transform:GetWorldPosition()
+            if not potentials then
+                potentials = {Vector3(x, y, z)}
+            else
+                table.insert(potentials, Vector3(x, y, z))
+            end
+        end
+    end
+
+    if potentials then
+        while #potentials > 0 do
+            local r = math.random(#potentials)
+            local pt = table.remove(potentials, r)
+            local offset = FindWalkableOffset(pt, math.random() * PI2, GOODFISSURE_DISTANCE, 16, nil, nil, IsGoodFissureLocation_Bridge)
+            if offset then
+                return pt.x + offset.x, pt.y + offset.y, pt.z + offset.z
+            end
+        end
+    end
+
+    return nil, nil, nil
+end
 
 function self:TickFindingGoodFissures()
     if GetTime() < _internal_cooldown then
@@ -47,13 +93,24 @@ function self:TickFindingGoodFissures()
     if _fissure == nil then -- Just in case.
         local closestdist = 99999
         local closestfissure = nil
-        for _, player in ipairs(AllPlayers) do
-            for somefissure, _ in pairs(_potential_fissures) do
-                local dsq = player:GetDistanceSqToInst(somefissure)
-                if dsq < closestdist and dsq < CLOSEST_FISSURE_MAXDIST_SQ then
-                    closestdist = dsq
-                    closestfissure = somefissure
+        if _world.topology.overrides == nil or _world.topology.overrides.fissure ~= "never" then
+            -- Assume some fissures are generated in the world use them instead.
+            for _, player in ipairs(AllPlayers) do
+                for somefissure, _ in pairs(_potential_fissures) do
+                    local dsq = player:GetDistanceSqToInst(somefissure)
+                    if dsq < closestdist and dsq < CLOSEST_FISSURE_MAXDIST_SQ then
+                        closestdist = dsq
+                        closestfissure = somefissure
+                    end
                 end
+            end
+        else
+            -- Assume no fissures are in the world so try to find a good spot to place one.
+            local x, y, z = self:FindGoodFissureLocation()
+            if x then
+                closestfissure = SpawnPrefab("fissure")
+                closestfissure.Transform:SetPosition(x, y, z)
+                closestfissure:MakeTempFissure()
             end
         end
         if closestfissure then
@@ -166,6 +223,10 @@ function self:IsThrallInCombat(thrall)
 end
 
 function self:SafeToReleaseFissure()
+    if _loading then -- Give players some time to load in.
+        return false
+    end
+
     if _thrall_hands ~= nil then
         if self:IsThrallInCombat(_thrall_hands) then
             return false
@@ -199,13 +260,11 @@ function self:UnregisterFissure(inst)
     if _fissure == inst then
         -- All players ran away from the target fissure, try releasing it if possible.
         if self:SafeToReleaseFissure() then
-            if _spawn_thralls_task == nil then
-                if _thrall_hands == nil or _thrall_horns == nil or _thrall_wings == nil then
-                    -- One of the trio is dead combat must have happened.
-                    self:ReleaseFissure(TUNING.FISSURE_COOLDOWN_DEFEATED_ANY_THRALLS)
-                else
-                    self:ReleaseFissure(TUNING.FISSURE_COOLDOWN_WALKED_AWAY)
-                end
+            if _spawn_thralls_task == nil and (_thrall_hands == nil or _thrall_horns == nil or _thrall_wings == nil) then
+                -- One of the trio is dead combat must have happened.
+                self:ReleaseFissure(TUNING.FISSURE_COOLDOWN_DEFEATED_ANY_THRALLS)
+            else
+                self:ReleaseFissure(TUNING.FISSURE_COOLDOWN_WALKED_AWAY)
             end
         else
             _thrall_combatcheck_task = self.inst:DoPeriodicTask(CHECK_FISSURE_INTERVAL, CheckIfSafeToReleaseFissure)
@@ -475,6 +534,10 @@ function self:OnSave()
     return data, ents
 end
 
+local function OnLoadingGraceTime()
+    _loading = nil
+end
+
 function self:OnLoad(data)
     if data then
         _internal_cooldown = GetTime() + (data.cooldown or _internal_cooldown)
@@ -484,6 +547,8 @@ function self:OnLoad(data)
         if data.spawnthrallstime then
             _spawn_thralls_task = self.inst:DoPeriodicTask(CHECK_FISSURE_INTERVAL, OnSpawnThralls_Bridge, data.spawnthrallstime)
         end
+        _loading = true
+        self.inst:DoTaskInTime(LOADING_GRACE_TIME, OnLoadingGraceTime)
     end
 end
 
@@ -529,14 +594,16 @@ end
 
 function self:GetDebugString()
     local t = GetTime()
-    return string.format("Has Fissure: %s, Hands: %s, Horns: %s, Wings: %s, Spawn CD: %.1f, Dread CD: %.1f, SpawnThralls: %.1f",
+    return string.format("Has Fissure: %s, Hands: %s, Horns: %s, Wings: %s, Spawn CD: %.1f, Dread CD: %.1f, SpawnThralls: %.1f, CombatTask: %.1f, Loading: %s",
         tostring(self:GetControlledFissure() ~= nil),
         tostring(_thrall_hands ~= nil),
         tostring(_thrall_horns ~= nil),
         tostring(_thrall_wings ~= nil),
         math.max(_internal_cooldown - t, 0),
         _dreadstone_regen_task == nil and 0 or GetTaskRemaining(_dreadstone_regen_task),
-        _spawn_thralls_task == nil and 0 or GetTaskRemaining(_spawn_thralls_task))
+        _spawn_thralls_task == nil and 0 or GetTaskRemaining(_spawn_thralls_task),
+        _thrall_combatcheck_task == nil and 0 or GetTaskRemaining(_thrall_combatcheck_task),
+        tostring(_loading ~= nil))
 end
 
 --------------------------------------------------------------------------

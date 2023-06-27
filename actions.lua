@@ -846,9 +846,6 @@ ACTIONS.LOOKAT.fn = function(act)
 					act.doer.components.locomotor:Stop()
 				end
                 if ThePlayer == act.doer then
-                    if TheScrapbookPartitions:WasViewedInScrapbook(targ.prefab) and not TheScrapbookPartitions:WasInspectedByCharacter(targ.prefab, ThePlayer.prefab) then
-                        TheScrapbookPartitions:SetViewedInScrapbook(targ.prefab,false)
-                    end
                     TheScrapbookPartitions:SetInspectedByCharacter(targ.prefab, ThePlayer.prefab)
                 end
 				if act.doer.components.talker ~= nil then
@@ -1195,7 +1192,9 @@ local function DoToolWork(act, workaction)
 				act.doer:PushEvent("tooltooweak", { workaction = workaction })
 			end
 		end
-		act.target.components.workable:WorkedBy(act.doer, numworks)
+		--V2C: Call the "internal" function directly since we've already accounted for recoil.
+		--     Chose the "internal" naming to discourage more places from calling it directly.
+		act.target.components.workable:WorkedBy_Internal(act.doer, numworks)
         return true
     end
     return false
@@ -2362,13 +2361,18 @@ ACTIONS.USEKLAUSSACKKEY.fn = function(act)
 end
 
 ACTIONS.TEACH.strfn = function(act)
+    if act.invobject:HasTag("scrapbook_data") then
+        return "SCRAPBOOK"
+    end
 	return act.invobject ~= nil and act.invobject.components.mapspotrevealer ~= nil and "READ" or nil
 end
 
 ACTIONS.TEACH.fn = function(act)
     if act.invobject ~= nil then
         local target = act.target or act.doer
-        if act.invobject.components.teacher ~= nil then
+        if act.invobject.components.scrapbookable ~= nil then
+            return act.invobject.components.scrapbookable:Teach(act.doer)
+        elseif act.invobject.components.teacher ~= nil then
             return act.invobject.components.teacher:Teach(target)
         elseif act.invobject.components.maprecorder ~= nil then
             local success, reason = act.invobject.components.maprecorder:TeachMap(target)
@@ -2416,7 +2420,7 @@ ACTIONS.USEITEM.fn = function(act)
 		--V2C: kinda hack since USEITEM is instant action, and the useableitem will
 		--     liklely force state change (bad!) instead.
 		act.doer.sg.statemem.is_going_to_action_state = true
-		local ret = act.invobject.components.useableitem:StartUsingItem()
+		local ret = act.invobject.components.useableitem:StartUsingItem(act.doer)
 		--And clear it now in case no state change happened
 		act.doer.sg.statemem.is_going_to_action_state = nil
 		return ret
@@ -3261,6 +3265,10 @@ ACTIONS.STOPCONSTRUCTION.fn = function(act)
 
     end
     return true
+end
+
+ACTIONS.APPLYCONSTRUCTION.strfn = function(act)
+	return act.target:HasTag("offerconstructionsite") and "OFFER" or nil
 end
 
 ACTIONS.APPLYCONSTRUCTION.fn = function(act)

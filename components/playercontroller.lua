@@ -893,6 +893,17 @@ function PlayerController:DoControllerAltActionButton()
         obj = self:GetControllerTarget()
         if obj ~= nil then
             lmb, act = self:GetSceneItemControllerAction(obj)
+			if act ~= nil and act.action == ACTIONS.APPLYCONSTRUCTION then
+				local container = act.target ~= nil and act.target.replica.container
+				if container ~= nil and
+					container.widget ~= nil and
+					container.widget.overrideactionfn ~= nil and
+					container.widget.overrideactionfn(act.target, self.inst)
+					then
+					--e.g. rift offering has a local confirmation popup
+					return
+				end
+			end
         end
         if act == nil then
 			act = self:GetGroundUseSpecialAction(nil, true)
@@ -3562,9 +3573,6 @@ function PlayerController:DoAction(buffaction, spellbook)
     end
 
     if ThePlayer and buffaction.action == ACTIONS.LOOKAT and buffaction.target then
-        if TheScrapbookPartitions:WasViewedInScrapbook(buffaction.target.prefab) and not TheScrapbookPartitions:WasInspectedByCharacter(buffaction.target.prefab, ThePlayer.prefab) then
-            TheScrapbookPartitions:SetViewedInScrapbook(buffaction.target.prefab, false)
-        end
         TheScrapbookPartitions:SetInspectedByCharacter(buffaction.target.prefab, ThePlayer.prefab)
     end
 end
@@ -4230,9 +4238,6 @@ function PlayerController:RemoteInspectItemFromInvTile(item)
         end
     end
     if ThePlayer and item then
-        if TheScrapbookPartitions:WasViewedInScrapbook(item.prefab) and not TheScrapbookPartitions:WasInspectedByCharacter(item.prefab, ThePlayer.prefab) then
-            TheScrapbookPartitions:SetViewedInScrapbook(item.prefab, false)
-        end
         TheScrapbookPartitions:SetInspectedByCharacter(item.prefab, ThePlayer.prefab)
     end
 end
