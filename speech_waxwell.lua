@@ -905,8 +905,14 @@ return{
     },
     ANNOUNCE_WOLFGANG_WIMPY_COACHING = "only_used_by_wolfgang",
     ANNOUNCE_WOLFGANG_MIGHTY_COACHING = "only_used_by_wolfgang",
-    ANNOUNCE_WOLFGANG_BEGING_COACHING = "only_used_by_wolfgang",
+    ANNOUNCE_WOLFGANG_BEGIN_COACHING = "only_used_by_wolfgang",
     ANNOUNCE_WOLFGANG_END_COACHING = "only_used_by_wolfgang",
+    ANNOUNCE_WOLFGANG_NOTEAM = 
+    {
+        "only_used_by_wolfgang",
+        "only_used_by_wolfgang",
+        "only_used_by_wolfgang",
+    },
 
 	BATTLECRY =
 	{
@@ -4818,6 +4824,8 @@ return{
 		PICKAXE_LUNARPLANT = "It works surprisingly well.",
 		SHOVEL_LUNARPLANT = "I'd rather let someone else do my dirty work.",
 
+		BROKEN_FORGEDITEM = "It's of no use to me like this.",
+
         PUNCHINGBAG = "A crude test of my weapons' power.",
 
         -- Rifts 2
@@ -4875,6 +4883,11 @@ return{
         SUPPORT_PILLAR_COMPLETE = "It will hold, for now.",
         SUPPORT_PILLAR_BROKEN = "It couldn't withstand the pressure.",
 
+		SUPPORT_PILLAR_DREADSTONE_SCAFFOLD = "There is work to be done. For someone else.",
+		SUPPORT_PILLAR_DREADSTONE = "It's buckling under the weight.",
+		SUPPORT_PILLAR_DREADSTONE_COMPLETE = "Hope it's as strong as it looks.",
+		SUPPORT_PILLAR_DREADSTONE_BROKEN = "Surprise, surprise.",
+
         WOLFGANG_WHISTLE = "Ah yes. What could be more motivating than the shriek of a whistle?",
     },
 
@@ -4892,7 +4905,6 @@ return{
     DESCRIBE_PLANTSTRESSORMOISTURE = "It needs water again? Ugh, the toiling never ends.",
     DESCRIBE_PLANTSTRESSORNUTRIENTS = "Richer soil might be needed.",
     DESCRIBE_PLANTSTRESSORHAPPINESS = "I'd better have a word with that underperforming plant...",
-    DESCRIBE_PLANT_IDENTIFIED = "only_used_by_wormwood",
 
     EAT_FOOD =
     {

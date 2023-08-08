@@ -285,8 +285,8 @@ ACTIONS =
     UNLOCK = Action(),
     USEKLAUSSACKKEY = Action(),
     TEACH = Action({ mount_valid=true }),
-    TURNON = Action({ priority=2 }),
-    TURNOFF = Action({ priority=2 }),
+    TURNON = Action({ priority=2, invalid_hold_action = true, }),
+    TURNOFF = Action({ priority=2, invalid_hold_action = true, }),
     SEW = Action({ mount_valid=true }),
     STEAL = Action(),
     USEITEM = Action({ priority=1, instant=true }),
@@ -349,7 +349,7 @@ ACTIONS =
     ABANDON = Action({ rmb=true }),
     PET = Action(),
     DISMANTLE = Action({ rmb=true }),
-    TACKLE = Action({ rmb=true, distance=math.huge }),
+    TACKLE = Action({ rmb=true, distance=math.huge, invalid_hold_action = true, }),
 	GIVE_TACKLESKETCH = Action(),
 	REMOVE_FROM_TROPHYSCALE = Action(),
 	CYCLE = Action({ rmb=true, priority=2 }),
@@ -490,9 +490,6 @@ ACTIONS =
 
     -- WOODIE
     USE_WEREFORM_SKILL = Action({ rmb=true, distance=math.huge }),
-
-    -- WORMWOOD
-    IDENTIFY_PLANT = Action({priority=-1, rmb=true, mount_valid=true}),
 
     -- Rifts
     SCYTHE = Action({ rmb=true, distance=1.8, rangecheckfn=DefaultRangeCheck, invalid_hold_action=true }),
@@ -859,9 +856,6 @@ ACTIONS.LOOKAT.fn = function(act)
 				) then
 					act.doer.components.locomotor:Stop()
 				end
-                if ThePlayer == act.doer then
-                    TheScrapbookPartitions:SetInspectedByCharacter(targ.prefab, ThePlayer.prefab)
-                end
 				if act.doer.components.talker ~= nil then
 					act.doer.components.talker:Say(desc, nil, targ.components.inspectable.noanim, nil, nil, nil, text_filter_context, original_author)
 				end
@@ -2104,6 +2098,17 @@ ACTIONS.SHAVE.fn = function(act)
     end
 end
 
+ACTIONS.PLAY.strfn = function(act)
+	if act.invobject ~= nil then
+		if act.invobject:HasTag("coach_whistle") then
+			if act.doer:HasTag("wolfgang_coach") and act.doer:HasTag("mightiness_normal") then
+				return act.doer:HasTag("coaching") and "COACH_OFF" or "COACH_ON"
+			end
+			return "TWEET"
+		end
+	end
+end
+
 ACTIONS.PLAY.fn = function(act)
     if act.invobject and act.invobject.components.instrument then
         return act.invobject.components.instrument:Play(act.doer)
@@ -2426,7 +2431,6 @@ ACTIONS.TURNOFF.fn = function(act)
 end
 
 ACTIONS.USEITEM.fn = function(act)
-
     if act.invobject ~= nil and
         act.invobject.components.useableitem ~= nil and
         act.invobject.components.useableitem:CanInteract() and
@@ -2442,15 +2446,7 @@ ACTIONS.USEITEM.fn = function(act)
     end
 end
 
-ACTIONS.USEITEM.strfn = function(act)
-    if act.invobject.getuseitemverb then
-        return act.invobject.getuseitemverb(act.invobject,act.doer)
-    end
-    return "GENERIC"
-end
-
 ACTIONS.USEITEMON.strfn = function(act)
-
     return (act.invobject ~= nil and string.upper(act.invobject.prefab))
             or "GENERIC"
 end
@@ -3192,7 +3188,8 @@ ACTIONS.CONSTRUCT.strfn = function(act)
                 (act.target:HasTag("constructionsite")      and "STORE")
             )
         or  (
-                (act.target:HasTag("offerconstructionsite") and "OFFER_TO")
+				(act.target:HasTag("offerconstructionsite") and "OFFER_TO") or
+				(act.target:HasTag("repairconstructionsite") and "REPAIR")
             )
         or nil
 end
@@ -3210,11 +3207,6 @@ ACTIONS.CONSTRUCT.fn = function(act)
         --Silent fail for construction in the dark
         if not CanEntitySeeTarget(act.doer, target) then
             return true
-        end
-
-        -- DANY: open sound here.
-        if act.doer == ThePlayer then
-            act.doer.SoundEmitter:PlaySound("dontstarve/wilson/chest_open")
         end
 
         local item = act.invobject
@@ -3270,28 +3262,23 @@ ACTIONS.STOPCONSTRUCTION.stroverridefn = function(act)
 end
 
 ACTIONS.STOPCONSTRUCTION.strfn = function(act)
-    return
-        (
-            (act.target:HasTag("offerconstructionsite") and "OFFER")
-        )
-    or nil
+	return (act.target:HasTag("offerconstructionsite") and "OFFER")
+		or (act.target:HasTag("repairconstructionsite") and "REPAIR")
+		or nil
 end
 
 ACTIONS.STOPCONSTRUCTION.fn = function(act)
     if act.doer ~= nil and act.doer.components.constructionbuilder ~= nil then
         act.doer.components.constructionbuilder:StopConstruction()
-
-        -- DANY: close sound here.
-        if act.doer == ThePlayer then
-            act.doer.SoundEmitter:PlaySound("dontstarve/wilson/chest_close")
-        end
-
     end
     return true
 end
 
 ACTIONS.APPLYCONSTRUCTION.strfn = function(act)
-	return act.target:HasTag("offerconstructionsite") and "OFFER" or nil
+	print(act.target, act.target:HasTag("repairconstructionsite"))
+	return (act.target:HasTag("offerconstructionsite") and "OFFER")
+		or (act.target:HasTag("repairconstructionsite") and "REPAIR")
+		or nil
 end
 
 ACTIONS.APPLYCONSTRUCTION.fn = function(act)
@@ -4645,22 +4632,4 @@ end
 
 ACTIONS.USE_WEREFORM_SKILL.fn = function(act)
     return act.doer ~= nil and act.doer:UseWereFormSkill(act)
-end
-
-ACTIONS.IDENTIFY_PLANT.fn = function(act)
-    local target = act.target
-    if target then
-        local target_prefab = (target.BeIdentified and target:BeIdentified(act.doer))
-            or target.prefab
-
-        if target_prefab and act.doer then
-            local description = GetString(act.doer, "DESCRIBE_PLANT_IDENTIFIED")
-            if description and act.doer.components.talker then
-                description = subfmt(description, {plantname = STRINGS.NAMES[string.upper(target_prefab)]})
-                act.doer.components.talker:Say(description)
-            end
-        end
-        return true
-    end
-    return false
 end

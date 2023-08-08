@@ -804,6 +804,13 @@ local fx =
         anim = "idle",
     },
     {
+        name = "werebeaver_groundpound_fx",
+        bank = "bearger_ground_fx",
+        build = "bearger_ground_fx",
+        sound = "meta2/woodie/ground_fx",
+        anim = "idle",
+    },
+    {
         name = "lavaarena_portal_player_fx",
         bank = "lavaarena_player_teleport",
         build = "lavaarena_player_teleport",
@@ -2773,7 +2780,7 @@ local fx =
         build = "moon_tea_fx",
         anim = "puff",
         bloom = true,
-		sound = "dontstarve/common/fireOut",
+		sound = "meta2/wormwood/animation_dropdown",
         fn = FinalOffset1,
     },
 }

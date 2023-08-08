@@ -98,6 +98,8 @@ local Mightiness = Class(function(self, inst)
     self.ratemodifiers = SourceModifierList(self.inst)
 
     self.state = "normal"
+    -- Recommended to explicitly add tag to prefab pristine state
+    inst:AddTag("mightiness_normal")
 
     local period = 1
     self.inst:DoPeriodicTask(period, OnTaskTick, nil, self, period)
@@ -211,7 +213,7 @@ function Mightiness:DoDelta(delta, force_update, delay_skin, forcesound, fromgym
         if self.current <= self.max and not fromgym then
             self.current = math.min(self.current + delta, self.max)
         elseif fromgym then
-            self.current = math.min(self.current + delta, self.max+self.overmaxmax)
+            self.current = math.min(self.current + delta, self.max + self:GetOverMax())
         end
     else
         self.current = math.max(0,self.current + delta)

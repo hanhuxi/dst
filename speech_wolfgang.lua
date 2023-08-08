@@ -906,8 +906,14 @@ return{
     },
     ANNOUNCE_WOLFGANG_WIMPY_COACHING = "They'll never listen to Wolfgang like this! Need to train!",
     ANNOUNCE_WOLFGANG_MIGHTY_COACHING = "Wolfgang's muscles are too impressive. Would not want to embarrass others.",
-    ANNOUNCE_WOLFGANG_BEGING_COACHING = "Come, friends! Wolfgang will show you how it's done!",
+    ANNOUNCE_WOLFGANG_BEGIN_COACHING = "Come, friends! Wolfgang will show you how it's done!",
     ANNOUNCE_WOLFGANG_END_COACHING = "Is time to rest weary muscles.",
+    ANNOUNCE_WOLFGANG_NOTEAM = 
+    {
+        "Where is team?",
+        "Wolfgang needs team.",
+        "Let's go... team?",
+    },
 
 	BATTLECRY =
 	{
@@ -4819,6 +4825,8 @@ return{
 		PICKAXE_LUNARPLANT = "Rocks will tremble before Wolfgang!",
 		SHOVEL_LUNARPLANT = "But is not shoe? Wolfgang is confused...",
 
+		BROKEN_FORGEDITEM = "Sorry friends, Wolfgang forgets his own strength.",
+
         PUNCHINGBAG = "Wolfgang will try to go easy on tiny punch man.",
 
         -- Rifts 2
@@ -4876,6 +4884,11 @@ return{
         SUPPORT_PILLAR_COMPLETE = "Is mighty pillar!",
         SUPPORT_PILLAR_BROKEN = "Is crumbled. Very sad.",
 
+		SUPPORT_PILLAR_DREADSTONE_SCAFFOLD = "Do not look! Is not done yet!",
+		SUPPORT_PILLAR_DREADSTONE = "Stay strong, mighty pillar!",
+		SUPPORT_PILLAR_DREADSTONE_COMPLETE = "Mighty pillar is mighty... and little bit scary.",
+		SUPPORT_PILLAR_DREADSTONE_BROKEN = "Poor scary pillar is broke. So sad.",
+
         WOLFGANG_WHISTLE = "Wolfgang is good teacher!",
     },
 
@@ -4893,7 +4906,6 @@ return{
     DESCRIBE_PLANTSTRESSORMOISTURE = "Plant needs a drink!",
     DESCRIBE_PLANTSTRESSORNUTRIENTS = "Is hungry! What do plants like to eat...",
     DESCRIBE_PLANTSTRESSORHAPPINESS = "Wolfgang will have a little chat with plant.",
-    DESCRIBE_PLANT_IDENTIFIED = "only_used_by_wormwood",
 
     EAT_FOOD =
     {

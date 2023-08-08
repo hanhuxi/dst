@@ -10,9 +10,11 @@ local assets =
     Asset("ANIM", "anim/player_mount_wormwood_fertilizer.zip"),
     Asset("ANIM", "anim/player_idles_wormwood.zip"),
     Asset("ANIM", "anim/wormwood_skills.zip"),
+    Asset("ANIM", "anim/player_mount_wormwood_skills.zip"),
+	Asset("ANIM", "anim/wormwood_skills_fx.zip"),
     Asset("ANIM", "anim/wormwood_pollen_fx.zip"),
     Asset("ANIM", "anim/wormwood_bloom_fx.zip"),
-    Asset("SCRIPT", "scripts/prefabs/skilltree_wormwood.lua"),    
+    Asset("SCRIPT", "scripts/prefabs/skilltree_wormwood.lua"),
 }
 
 local prefabs =
@@ -252,14 +254,8 @@ local function PollenTick(inst)
     inst:DoTaskInTime(math.random() * .6, DoSpawnPollen)
 end
 
-----
-local function IdentifyPetals(item)
-    return item.prefab == "petals"
-end
-
 local PLANTS_RANGE = 1
 local MAX_PLANTS = 18
-local MAX_PETALS = 10 -- Important that this is lower than the maximum stack size of petals.
 
 local PLANTFX_TAGS = { "wormwood_plant_fx" }
 local function PlantTick(inst)
@@ -267,16 +263,16 @@ local function PlantTick(inst)
         return
     end
 
-	local t = inst.components.bloomness.timer
-	local chance = TheWorld.state.isspring and 1
-					or t <= TUNING.WORMWOOD_BLOOM_PLANTS_WARNING_TIME_LOW and 1/3
-					or t <= TUNING.WORMWOOD_BLOOM_PLANTS_WARNING_TIME_MED and 2/3
-					or 1
+    local t = inst.components.bloomness.timer
+    local chance = TheWorld.state.isspring and 1
+                    or t <= TUNING.WORMWOOD_BLOOM_PLANTS_WARNING_TIME_LOW and 1/3
+                    or t <= TUNING.WORMWOOD_BLOOM_PLANTS_WARNING_TIME_MED and 2/3
+                    or 1
 
-	if (chance < 1 and math.random() > chance)
+    if (chance < 1 and math.random() > chance)
             or inst:GetCurrentPlatform() then
-		return
-	end
+        return
+    end
 
     local x, y, z = inst.Transform:GetWorldPosition()
     if #TheSim:FindEntities(x, y, z, PLANTS_RANGE, PLANTFX_TAGS) < MAX_PLANTS then
@@ -305,21 +301,6 @@ local function PlantTick(inst)
             plant:SetVariation(rnd)
         end
     end
-
-    if inst.components.skilltreeupdater:IsActivated("wormwood_blooming_petals") and not inst.components.timer:TimerExists("wormwood_blooming_petals_cooldown") then
-        inst.components.timer:StartTimer("wormwood_blooming_petals_cooldown", TUNING.WORMWOOD_PETALS_RATE)
-
-        local inventory = inst.components.inventory
-
-        -- If we have fewer than our max petals count, and our inventory has a spot for more,
-        -- dunk one into our inventory (and track the time we did it).
-        local has_max_petals, num_petals = inventory:Has("petals", MAX_PETALS)
-        if not has_max_petals and not (num_petals == 0 and inventory:IsFull()) then
-            local petals = SpawnPrefab("petals")
-            petals.Transform:SetPosition(x, y, z)
-            inventory:GiveItem(petals, nil, Vector3(x, y, z))
-        end
-    end
 end
 
 local function EnableBeeBeacon(inst, enable)
@@ -334,22 +315,51 @@ local function EnableBeeBeacon(inst, enable)
     end
 end
 
-local PLANT_TAGS = {"tendable_farmplant"}
-local function TendToPlantsAOE(inst)
+local AOE_EFFECTS_ONEOF_TAGS = { "tendable_farmplant", "trap_bramble" }
+local AOE_EFFECTS_CANT_TAGS = { "INLIMBO", "FX"}
+local DAYLIGHT_MUST_TAGS = {"daylight"}
+local DAYLIGHT_CANT_TAGS = {"INLIMBO"}
+local function DoAOEeffect(inst)
     local x, y, z = inst.Transform:GetWorldPosition()
 
     local skilltreeupdater = inst.components.skilltreeupdater
-    local interact_range_multiplier = (skilltreeupdater == nil and 1.0)
-        or (skilltreeupdater:IsActivated("wormwood_blooming_farmrange3") and 2.0)
-        or (skilltreeupdater:IsActivated("wormwood_blooming_farmrange2") and 1.5)
-        or (skilltreeupdater:IsActivated("wormwood_blooming_farmrange1") and 1.2)
-        or 1.0
+
+    local reset_brambletraps, grow_in_daylight
+    if skilltreeupdater ~= nil then
+        reset_brambletraps = skilltreeupdater:IsActivated("wormwood_blooming_trapbramble")
+        grow_in_daylight = skilltreeupdater:IsActivated("wormwood_blooming_photosynthesis")
+    end
+
+    local interact_range_multiplier = (
+        skilltreeupdater ~= nil and skilltreeupdater:IsActivated("wormwood_blooming_farmrange1") and TUNING.WORMWOOD_TENDRANGE_MULT
+        or 1
+    )
+
     local interact_range = TUNING.WORMWOOD_BLOOM_FARM_PLANT_INTERACT_RANGE * interact_range_multiplier
-    for _, v in pairs(TheSim:FindEntities(x, y, z, interact_range, PLANT_TAGS)) do
-		if v.components.farmplanttendable then
-			v.components.farmplanttendable:TendTo(inst)
-		end
-	end
+    for _, v in pairs(TheSim:FindEntities(x, y, z, interact_range, nil, AOE_EFFECTS_CANT_TAGS, AOE_EFFECTS_ONEOF_TAGS)) do
+        if v.components.farmplanttendable then
+            v.components.farmplanttendable:TendTo(inst)
+
+        elseif reset_brambletraps and v.components.mine ~= nil and v:HasTag("minesprung") then
+            if v.last_reset == nil or v.last_reset + TUNING.WORMWOOD_TRAP_BRAMBLE_AUTO_RESET_COOLDOWN < GetTime() then
+                v.components.mine:Reset()
+            end
+        end
+    end
+
+    local should_grow_in_daylight = TheWorld.state.isday
+    if grow_in_daylight and not should_grow_in_daylight then
+        local ents = TheSim:FindEntities(x, y, z, TUNING.DAYLIGHT_SEARCH_RANGE, DAYLIGHT_MUST_TAGS, DAYLIGHT_CANT_TAGS)
+        for _, v in ipairs(ents) do
+            local lightrad = v.Light:GetCalculatedRadius() * .7
+            if v:GetDistanceSqToPoint(x, y, z) < lightrad * lightrad then
+                should_grow_in_daylight = true
+                break
+            end
+        end
+    end
+
+    inst:UpdatePhotosynthesisState(should_grow_in_daylight)
 end
 
 local function EnableFullBloom(inst, enable)
@@ -359,30 +369,32 @@ local function EnableFullBloom(inst, enable)
 
             local skilltreeupdater = inst.components.skilltreeupdater
             local has_upgraded_overheat_protection = (skilltreeupdater ~= nil and skilltreeupdater:IsActivated("wormwood_blooming_overheatprotection"))
-			inst.components.temperature.inherentsummerinsulation = (has_upgraded_overheat_protection and TUNING.INSULATION_MED_LARGE)
+            inst.components.temperature.inherentsummerinsulation = (has_upgraded_overheat_protection and TUNING.INSULATION_MED_LARGE)
                 or TUNING.INSULATION_SMALL
 
-			if not inst.tendplanttask then
-                inst.tendplanttask = inst:DoPeriodicTask(.5, TendToPlantsAOE)
+            if not inst.tendplanttask then
+                inst.tendplanttask = inst:DoPeriodicTask(.5, DoAOEeffect)
             end
 
-			-- trail effects
+            -- trail effects
             if not inst.pollentask then
                 inst.pollentask = inst:DoPeriodicTask(.7, PollenTick)
             end
             if not inst.planttask then
                 inst.planttask = inst:DoPeriodicTask(.25, PlantTick)
             end
+
+            inst:UpdatePhotosynthesisState(TheWorld.state.isday)
         end
     elseif inst.fullbloom then
         inst.fullbloom = nil
-		inst.components.temperature.inherentsummerinsulation = 0
+        inst.components.temperature.inherentsummerinsulation = 0
         if inst.tendplanttask then
             inst.tendplanttask:Cancel()
             inst.tendplanttask = nil
         end
 
-		-- trail effects
+        -- trail effects
         if inst.pollentask then
             inst.pollentask:Cancel()
             inst.pollentask = nil
@@ -391,12 +403,14 @@ local function EnableFullBloom(inst, enable)
             inst.planttask:Cancel()
             inst.planttask = nil
         end
+
+        inst:UpdatePhotosynthesisState(TheWorld.state.isday)
     end
 end
 
 local function SetStatsLevel(inst, level)
     --V2C: setting .runspeed does not stack with mount speed
-	local mult = Remap(level, 0, 3, 1, 1.2)
+    local mult = Remap(level, 0, 3, 1, 1.2)
     inst.components.locomotor.runspeed = TUNING.WILSON_RUN_SPEED * mult
     inst.components.hunger:SetRate(TUNING.WILSON_HUNGER_RATE * mult)
 end
@@ -426,9 +440,9 @@ local function SetSkinType(inst, skintype, defaultbuild)
 end
 
 local function OnNewSGState(inst)
-	if not inst.sg:HasStateTag("nomorph") then
-		inst:UpdateBloomStage()
-	end
+    if not inst.sg:HasStateTag("nomorph") then
+        inst:UpdateBloomStage()
+    end
 end
 
 local function OnStopGhostBuildInState(inst)
@@ -441,14 +455,14 @@ local function UpdateBloomStage(inst, stage)
     --The setters will all check for dirty values, since refreshing bloom
     --stage can potentially get triggered quite often with state changes.
 
-	stage = stage or inst.components.bloomness:GetLevel()
-	local is_blooming = inst.components.bloomness.is_blooming
+    stage = stage or inst.components.bloomness:GetLevel()
+    local is_blooming = inst.components.bloomness.is_blooming
 
     local isghost = inst:HasTag("playerghost") or inst.sg:HasStateTag("ghostbuild")
 
     if not isghost and inst.sg:HasStateTag("nomorph") then
-		inst._queued_morph = true
-		inst:ListenForEvent("newstate", OnNewSGState)
+        inst._queued_morph = true
+        inst:ListenForEvent("newstate", OnNewSGState)
         return
     else
         EnableBeeBeacon(inst, stage > 0)
@@ -457,15 +471,15 @@ local function UpdateBloomStage(inst, stage)
         SetUserFlagLevel(inst, stage)
     end
 
-	if inst._queued_morph then
-		inst._queued_morph = false
-		inst:RemoveEventCallback("newstate", OnNewSGState)
-	end
+    if inst._queued_morph then
+        inst._queued_morph = false
+        inst:RemoveEventCallback("newstate", OnNewSGState)
+    end
 
-	local silent = inst._loading or inst.components.health:IsDead() or not inst.entity:IsVisible() or inst.sg:HasStateTag("silentmorph")
+    local silent = inst._loading or inst.components.health:IsDead() or not inst.entity:IsVisible() or inst.sg:HasStateTag("silentmorph")
 
     if stage <= 0 then
-	    inst:RemoveEventCallback("stopghostbuildinstate", OnStopGhostBuildInState)
+        inst:RemoveEventCallback("stopghostbuildinstate", OnStopGhostBuildInState)
         inst.overrideskinmode = nil
         if isghost then
             SetSkinType(inst, "ghost_skin", "ghost_wilson_build")
@@ -477,7 +491,7 @@ local function UpdateBloomStage(inst, stage)
             inst.components.talker:Say(GetString(inst, "ANNOUNCE_BLOOMING"))
         end
         inst.overrideskinmode = "stage_"..tostring(stage + 1)
-	    inst:ListenForEvent("stopghostbuildinstate", OnStopGhostBuildInState)
+        inst:ListenForEvent("stopghostbuildinstate", OnStopGhostBuildInState)
         if isghost then
             SetSkinType(inst, "ghost_skin", "ghost_wilson_build")
         elseif SetSkinType(inst, inst.overrideskinmode, "wilson") and not silent then
@@ -487,23 +501,23 @@ local function UpdateBloomStage(inst, stage)
 end
 
 local function OnFertilizedWithFormula(inst, value)
-	if value > 0 and inst.components.bloomness then
-		inst.components.bloomness:Fertilize(value)
-	end
+    if value > 0 and inst.components.bloomness then
+        inst.components.bloomness:Fertilize(value)
+    end
 end
 
 local function OnFertilizedWithCompost(inst, value)
-	if value > 0 and inst.components.health and not inst.components.health:IsDead() then
-		local healing = TUNING.WORMWOOD_COMPOST_HEAL_VALUES[math.ceil(value / 8)] or TUNING.WORMWOOD_COMPOST_HEAL_VALUES[1]
+    if value > 0 and inst.components.health and not inst.components.health:IsDead() then
+        local healing = TUNING.WORMWOOD_COMPOST_HEAL_VALUES[math.ceil(value / 8)] or TUNING.WORMWOOD_COMPOST_HEAL_VALUES[1]
         inst:AddDebuff("compostheal_buff", "compostheal_buff", {duration = healing * (TUNING.WORMWOOD_COMPOST_HEALOVERTIME_TICK/TUNING.WORMWOOD_COMPOST_HEALOVERTIME_HEALTH)})
-	end
+    end
 end
 
 local function OnFertilizedWithManure(inst, value, src)
-	if value > 0 and inst.components.bloomness then
-		local healing = TUNING.WORMWOOD_MANURE_HEAL_VALUES[math.ceil(value / 8)] or TUNING.WORMWOOD_MANURE_HEAL_VALUES[1]
-		inst.components.health:DoDelta(healing, false, src.prefab)
-	end
+    if value > 0 and inst.components.bloomness then
+        local healing = TUNING.WORMWOOD_MANURE_HEAL_VALUES[math.ceil(value / 8)] or TUNING.WORMWOOD_MANURE_HEAL_VALUES[1]
+        inst.components.health:DoDelta(healing, false, src.prefab)
+    end
 end
 
 local function OverrideAcidRainTickFn(inst, damage)
@@ -511,70 +525,116 @@ local function OverrideAcidRainTickFn(inst, damage)
 end
 
 local function OnFertilized(inst, fertilizer_obj)
-	if inst.components.health and inst.components.health.canheal then
-		local fertilizer = fertilizer_obj.components.fertilizer
-		if fertilizer and fertilizer.nutrients then
-			if fertilizer.planthealth then
-				--inst.components.health:DoDelta(fertilizer.planthealth, false, fertilizer_obj.prefab)
-			end
-			if fertilizer.nutrients then
-				inst:OnFertilizedWithFormula(fertilizer.nutrients[TUNING.FORMULA_NUTRIENTS_INDEX], fertilizer_obj)
-				inst:OnFertilizedWithCompost(fertilizer.nutrients[TUNING.COMPOST_NUTRIENTS_INDEX], fertilizer_obj)
-				inst:OnFertilizedWithManure(fertilizer.nutrients[TUNING.MANURE_NUTRIENTS_INDEX], fertilizer_obj)
-				return true
-			end
-		end
-	end
+    if inst.components.health and inst.components.health.canheal then
+        local fertilizer = fertilizer_obj.components.fertilizer
+        if fertilizer and fertilizer.nutrients then
+            if fertilizer.planthealth then
+                --inst.components.health:DoDelta(fertilizer.planthealth, false, fertilizer_obj.prefab)
+            end
+            if fertilizer.nutrients then
+                inst:OnFertilizedWithFormula(fertilizer.nutrients[TUNING.FORMULA_NUTRIENTS_INDEX], fertilizer_obj)
+                inst:OnFertilizedWithCompost(fertilizer.nutrients[TUNING.COMPOST_NUTRIENTS_INDEX], fertilizer_obj)
+                inst:OnFertilizedWithManure(fertilizer.nutrients[TUNING.MANURE_NUTRIENTS_INDEX], fertilizer_obj)
+                return true
+            end
+        end
+    end
 end
 
 local function CalcBloomRateFn(inst, level, is_blooming, fertilizer)
-	local season_mult = 1
-	if TheWorld.state.season == "spring" then
-		if is_blooming then
-			season_mult = TUNING.WORMWOOD_SPRING_BLOOM_MOD
-		else
-			return TUNING.WORMWOOD_SPRING_BLOOMDRAIN_RATE
-		end
-	elseif TheWorld.state.season == "winter" then
-		if is_blooming then
-			season_mult = TUNING.WORMWOOD_WINTER_BLOOM_MOD
-		else
-			return TUNING.WORMWOOD_WINTER_BLOOMDRAIN_RATE
-		end
-	end
+    local season_mult = 1
+    if TheWorld.state.season == "spring" then
+        if is_blooming then
+            season_mult = TUNING.WORMWOOD_SPRING_BLOOM_MOD
+        else
+            return TUNING.WORMWOOD_SPRING_BLOOMDRAIN_RATE
+        end
+    elseif TheWorld.state.season == "winter" then
+        if is_blooming then
+            season_mult = TUNING.WORMWOOD_WINTER_BLOOM_MOD
+        else
+            return TUNING.WORMWOOD_WINTER_BLOOMDRAIN_RATE
+        end
+    end
 
-	local rate = (is_blooming and fertilizer > 0) and (season_mult * (1 + fertilizer * TUNING.WORMWOOD_FERTILIZER_RATE_MOD)) or 1
-	return rate
+    local rate = (is_blooming and fertilizer > 0) and (season_mult * (1 + fertilizer * TUNING.WORMWOOD_FERTILIZER_RATE_MOD)) or 1
+    return rate
 end
 
 local function CalcFullBloomDurationFn(inst, value, remaining, full_bloom_duration)
-	value = value * TUNING.WORMWOOD_FERTILIZER_BLOOM_TIME_MOD
+    value = value * TUNING.WORMWOOD_FERTILIZER_BLOOM_TIME_MOD
 
     local actual_maximum = (inst.components.skilltreeupdater and
-                                inst.components.skilltreeupdater:IsActivated("wormwood_maxbloom_upgrade") and
+                                inst.components.skilltreeupdater:IsActivated("wormwood_blooming_max_upgrade") and
                                 TUNING.WORMWOOD_BLOOM_FULL_MAX_DURATION_UPGRADED)
                             or TUNING.WORMWOOD_BLOOM_FULL_MAX_DURATION
-	return math.min(remaining + value, actual_maximum)
+    return math.min(remaining + value, actual_maximum)
 end
 
 local function OnSeasonChange(inst, season)
     if season == "spring" and not inst:HasTag("playerghost") then
-		inst.components.bloomness:Fertilize()
-	else
-		inst.components.bloomness:UpdateRate()
+        inst.components.bloomness:Fertilize()
+    else
+        inst.components.bloomness:UpdateRate()
     end
 end
 
 local function OnBecameGhost(inst)
-	inst.components.bloomness:SetLevel(0)
+    inst.components.bloomness:SetLevel(0)
     StopWatchingWorldPlants(inst)
+
+    inst:UpdatePhotosynthesisState(TheWorld.state.isday)
 end
 
 local function OnRespawnedFromGhost(inst)
-	if TheWorld.state.isspring then
-		inst.components.bloomness:Fertilize()
-	end
+    if TheWorld.state.isspring then
+        inst.components.bloomness:Fertilize()
+    end
     WatchWorldPlants(inst)
+
+    inst:UpdatePhotosynthesisState(TheWorld.state.isday)
+end
+
+local function WLFSort(a, b) -- Better than roundcheck!
+    return a.GUID < b.GUID
+end
+
+local function RecalculateLightFlierPattern(inst)
+    local pets = inst.components.petleash and inst.components.petleash:GetPetsWithPrefab("wormwood_lightflier") or nil
+    if pets then
+        inst.wormwood_lightflier_pattern = pets
+        table.sort(pets, WLFSort)
+        for i, v in ipairs(pets) do
+            pets[v] = i
+        end
+        pets.maxpets = #pets
+    else
+        inst.wormwood_lightflier_pattern = nil
+    end
+end
+
+local function OnSpawnPet(inst, pet)
+    if pet.prefab == "wormwood_lightflier" then
+        inst:RecalculateLightFlierPattern()
+    end
+    if inst._OnSpawnPet ~= nil then
+        inst:_OnSpawnPet(pet)
+    end
+end
+
+local function OnDespawnPet(inst, pet)
+    if pet.prefab == "wormwood_lightflier" then
+        inst:RecalculateLightFlierPattern()
+    end
+    if inst._OnDespawnPet ~= nil then
+        inst:_OnDespawnPet(pet)
+    end
+end
+
+local function OnRemovedPet(inst, pet)
+    if pet.prefab == "wormwood_lightflier" then
+        inst:RecalculateLightFlierPattern()
+    end
 end
 
 local function OnNewSpawn(inst)
@@ -582,9 +642,9 @@ local function OnNewSpawn(inst)
         inst.inittask:Cancel()
         inst.inittask = nil
     end
-	if TheWorld.state.isspring then
-		inst.components.bloomness:Fertilize()
-	end
+    if TheWorld.state.isspring then
+        inst.components.bloomness:Fertilize()
+    end
 end
 
 local function OnPreLoad(inst)
@@ -605,11 +665,50 @@ local function OnInit(inst)
     inst:ListenForEvent("bloomfxdirty", OnBloomFXDirty)
 end
 
+-- Also called from skilltree_wormwood.lua
+local function UpdatePhotosynthesisState(inst, isday)
+    local should_photosynthesize = false
+    if isday and inst.fullbloom and inst.components.skilltreeupdater and inst.components.skilltreeupdater:IsActivated("wormwood_blooming_photosynthesis") and not inst:HasTag("playerghost") then
+        should_photosynthesize = true
+    end
+    if should_photosynthesize ~= inst.photosynthesizing then
+        inst.photosynthesizing = should_photosynthesize
+        if inst.components.health then
+            -- FIXME(JBK): Change this to a buff and remove health StartRegen StopRegen calls.
+            if should_photosynthesize then
+                local regen = TUNING.WORMWOOD_PHOTOSYNTHESIS_HEALTH_REGEN
+                inst.components.health:StartRegen(regen.amount, regen.period)
+            else
+                inst.components.health:StopRegen()
+            end
+        end
+    end
+end
+
+local function OnEat(inst, food)
+	if food.prefab == "moon_cap" and inst.components.skilltreeupdater ~= nil and inst.components.skilltreeupdater:IsActivated("wormwood_moon_cap_eating") then
+		--Trigger stategraph event handler immediately instead of buffering.
+		inst.sg:HandleEvent("queue_post_eat_state", { post_eat_state = "mooncap_cloud", nointerrupt = true })
+	end
+end
+
+local function RemoveWormwoodPets(inst)
+    local todespawn = {}
+    for k, v in pairs(inst.components.petleash:GetPets()) do
+        if v:HasTag("wormwood_pet") then
+            table.insert(todespawn, v)
+        end
+    end
+    for i, v in ipairs(todespawn) do
+        v:RemoveWormwoodPet()
+    end
+end
+
 local function common_postinit(inst)
     inst:AddTag("plantkin")
     inst:AddTag("self_fertilizable")
 
-    inst.AnimState:AddOverrideBuild("player_wormwood")
+	--inst.AnimState:AddOverrideBuild("player_wormwood") --V2C: "form_log" state now overrides symbol everytime, depending on product
     inst.AnimState:AddOverrideBuild("player_wormwood_fertilizer")
     inst.AnimState:AddOverrideBuild("wormwood_skills")
 
@@ -645,12 +744,27 @@ local function master_postinit(inst)
     inst.plantbonuses = {}
     inst.plantpenalties = {}
     inst.components.sanity.custom_rate_fn = SanityRateFn
-	inst.components.sanity.no_moisture_penalty = true
+    inst.components.sanity.no_moisture_penalty = true
 
     if inst.components.eater then
         --No health from food
         inst.components.eater:SetAbsorptionModifiers(0, 1, 1)
+		inst.components.eater:SetOnEatFn(OnEat)
     end
+
+    if inst.components.petleash ~= nil then
+        inst._OnSpawnPet = inst.components.petleash.onspawnfn
+        inst._OnDespawnPet = inst.components.petleash.ondespawnfn
+    else
+        inst:AddComponent("petleash")
+    end
+    local petleash = inst.components.petleash
+    petleash:SetOnSpawnFn(OnSpawnPet)
+    petleash:SetOnDespawnFn(OnDespawnPet)
+    petleash:SetOnRemovedFn(OnRemovedPet)
+    petleash:SetMaxPetsForPrefab("wormwood_lightflier", TUNING.WORMWOOD_PET_LIGHTFLIER_LIMIT)
+    petleash:SetMaxPetsForPrefab("wormwood_carrat", TUNING.WORMWOOD_PET_CARRAT_LIMIT)
+    petleash:SetMaxPetsForPrefab("wormwood_fruitdragon", TUNING.WORMWOOD_PET_FRUITDRAGON_LIMIT)
 
     inst.components.foodaffinity:AddPrefabAffinity("cave_banana_cooked", TUNING.AFFINITY_15_CALORIES_SMALL)
 
@@ -674,29 +788,32 @@ local function master_postinit(inst)
         table.insert(inst.plantpool, table.remove(inst.plantpool, math.random(i)))
     end
 
-	local bloomness = inst:AddComponent("bloomness")
-	bloomness:SetDurations(TUNING.WORMWOOD_BLOOM_STAGE_DURATION, TUNING.WORMWOOD_BLOOM_FULL_DURATION)
-	bloomness.onlevelchangedfn = UpdateBloomStage
-	bloomness.calcratefn = CalcBloomRateFn
-	bloomness.calcfullbloomdurationfn = CalcFullBloomDurationFn
+    local bloomness = inst:AddComponent("bloomness")
+    bloomness:SetDurations(TUNING.WORMWOOD_BLOOM_STAGE_DURATION, TUNING.WORMWOOD_BLOOM_FULL_DURATION)
+    bloomness.onlevelchangedfn = UpdateBloomStage
+    bloomness.calcratefn = CalcBloomRateFn
+    bloomness.calcfullbloomdurationfn = CalcFullBloomDurationFn
 
-	local fertilizable = inst:AddComponent("fertilizable")
-	fertilizable.onfertlizedfn = OnFertilized
+    local fertilizable = inst:AddComponent("fertilizable")
+    fertilizable.onfertlizedfn = OnFertilized
 
     inst.components.acidlevel:SetOverrideAcidRainTickFn(OverrideAcidRainTickFn)
 
-	inst.OnFertilizedWithFormula = OnFertilizedWithFormula
-	inst.OnFertilizedWithCompost = OnFertilizedWithCompost
-	inst.OnFertilizedWithManure = OnFertilizedWithManure
+    inst.OnFertilizedWithFormula = OnFertilizedWithFormula
+    inst.OnFertilizedWithCompost = OnFertilizedWithCompost
+    inst.OnFertilizedWithManure = OnFertilizedWithManure
 
     inst:ListenForEvent("equip", OnEquip)
     inst:ListenForEvent("unequip", OnUnequip)
     inst:ListenForEvent("ms_becameghost", OnBecameGhost)
     inst:ListenForEvent("ms_respawnedfromghost", OnRespawnedFromGhost)
+	inst:ListenForEvent("ms_playerreroll", RemoveWormwoodPets)
     inst:WatchWorldState("season", OnSeasonChange)
     WatchWorldPlants(inst)
 
-	inst.UpdateBloomStage = UpdateBloomStage
+    inst.UpdateBloomStage = UpdateBloomStage
+    inst.RecalculateLightFlierPattern = RecalculateLightFlierPattern
+    inst.UpdatePhotosynthesisState = UpdatePhotosynthesisState
 
     inst.OnPreLoad = OnPreLoad
     inst.OnLoad = OnLoad

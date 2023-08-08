@@ -905,8 +905,14 @@ return{
     },
     ANNOUNCE_WOLFGANG_WIMPY_COACHING = "only_used_by_wolfgang",
     ANNOUNCE_WOLFGANG_MIGHTY_COACHING = "only_used_by_wolfgang",
-    ANNOUNCE_WOLFGANG_BEGING_COACHING = "only_used_by_wolfgang",
+    ANNOUNCE_WOLFGANG_BEGIN_COACHING = "only_used_by_wolfgang",
     ANNOUNCE_WOLFGANG_END_COACHING = "only_used_by_wolfgang",
+    ANNOUNCE_WOLFGANG_NOTEAM = 
+    {
+        "only_used_by_wolfgang",
+        "only_used_by_wolfgang",
+        "only_used_by_wolfgang",
+    },
 
 	BATTLECRY =
 	{
@@ -4818,6 +4824,8 @@ return{
 		PICKAXE_LUNARPLANT = "We're coming to get you, rocks!",
 		SHOVEL_LUNARPLANT = "Two things in one, just like us!",
 
+		BROKEN_FORGEDITEM = "Oh no! Maybe we can fix it?",
+
         PUNCHINGBAG = "Wigfrid's teaching us how to spar with it!",
 
         -- Rifts 2
@@ -4875,6 +4883,11 @@ return{
         SUPPORT_PILLAR_COMPLETE = "It'll keep us safe!",
         SUPPORT_PILLAR_BROKEN = "Oh no, it broke!",
 
+		SUPPORT_PILLAR_DREADSTONE_SCAFFOLD = "What's hiding under there?",
+		SUPPORT_PILLAR_DREADSTONE = "Uh oh, those cracks are looking bigger...",
+		SUPPORT_PILLAR_DREADSTONE_COMPLETE = "Thanks for keeping us safe, pillar!",
+		SUPPORT_PILLAR_DREADSTONE_BROKEN = "Aww, poor pillar.",
+
         WOLFGANG_WHISTLE = "Mr. Wolfgang likes to play with whistles, just like us!",
     },
 
@@ -4892,7 +4905,6 @@ return{
     DESCRIBE_PLANTSTRESSORMOISTURE = "We should give it some water.",
     DESCRIBE_PLANTSTRESSORNUTRIENTS = "Maybe it needs some better dirt?",
     DESCRIBE_PLANTSTRESSORHAPPINESS = "Aww, do you need someone to talk to?",
-    DESCRIBE_PLANT_IDENTIFIED = "only_used_by_wormwood",
 
     EAT_FOOD =
     {

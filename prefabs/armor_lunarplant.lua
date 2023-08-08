@@ -6,6 +6,7 @@ local assets =
 local prefabs =
 {
 	"armor_lunarplant_glow_fx",
+	"hitsparks_reflect_fx",
     "wormwood_vined_debuff",
 }
 
@@ -82,10 +83,16 @@ local function SetupEquippable(inst)
 	inst.components.equippable:SetOnUnequip(onunequip)
 end
 
+local SWAP_DATA_BROKEN = { bank = "armor_lunarplant", anim = "broken" }
+local SWAP_DATA = { bank = "armor_lunarplant", anim = "anim" }
+
 local function OnBroken(inst)
 	if inst.components.equippable ~= nil then
 		inst:RemoveComponent("equippable")
 		inst.AnimState:PlayAnimation("broken")
+		inst.components.floater:SetSwapData(SWAP_DATA_BROKEN)
+		inst:AddTag("broken")
+		inst.components.inspectable.nameoverride = "BROKEN_FORGEDITEM"
 	end
 end
 
@@ -93,6 +100,9 @@ local function OnRepaired(inst)
 	if inst.components.equippable == nil then
 		SetupEquippable(inst)
 		inst.AnimState:PlayAnimation("anim")
+		inst.components.floater:SetSwapData(SWAP_DATA)
+		inst:RemoveTag("broken")
+		inst.components.inspectable.nameoverride = nil
 	end
 end
 
@@ -103,6 +113,13 @@ local function ReflectDamageFn(inst, attacker, damage, weapon, stimuli, spdamage
 			and TUNING.ARMOR_LUNARPLANT_REFLECT_PLANAR_DMG_VS_SHADOW
 			or TUNING.ARMOR_LUNARPLANT_REFLECT_PLANAR_DMG,
 	}
+end
+
+local function OnReflectDamage(inst, data)
+	--data.attacker is the target we are reflecting dmg to
+	if data ~= nil and data.attacker ~= nil and data.attacker:IsValid() then
+		SpawnPrefab("hitsparks_reflect_fx"):Setup(inst.components.inventoryitem.owner or inst, data.attacker)
+	end
 end
 
 local function fn()
@@ -116,6 +133,7 @@ local function fn()
 
 	inst:AddTag("lunarplant")
 	inst:AddTag("gestaltprotection")
+	inst:AddTag("show_broken_ui")
 
 	inst.AnimState:SetBank("armor_lunarplant")
 	inst.AnimState:SetBuild("armor_lunarplant")
@@ -123,8 +141,7 @@ local function fn()
 
 	inst.foleysound = "dontstarve/movement/foley/lunarplantarmour_foley"
 
-	local swap_data = { bank = "armor_lunarplant", anim = "anim" }
-	MakeInventoryFloatable(inst, "small", 0.2, 0.80, nil, nil, swap_data)
+	MakeInventoryFloatable(inst, "small", 0.2, 0.80, nil, nil, SWAP_DATA)
 
 	inst.scrapbook_specialinfo = "ARMORLUNARPLANT"
 
@@ -145,6 +162,7 @@ local function fn()
 
 	inst:AddComponent("damagereflect")
 	inst.components.damagereflect:SetReflectDamageFn(ReflectDamageFn)
+	inst:ListenForEvent("onreflectdamage", OnReflectDamage)
 
 	SetupEquippable(inst)
 
@@ -195,6 +213,12 @@ local function glow_OnRemoveEntity(inst)
 	end
 end
 
+local function glow_ColourChanged(inst, r, g, b, a)
+	for i, v in ipairs(inst.fx) do
+		v.AnimState:SetAddColour(r, g, b, a)
+	end
+end
+
 local function glow_SpawnFxForOwner(inst, owner)
 	inst.fx = {}
 	local frame
@@ -207,6 +231,7 @@ local function glow_SpawnFxForOwner(inst, owner)
 		fx.components.highlightchild:SetOwner(owner)
 		table.insert(inst.fx, fx)
 	end
+	inst.components.colouraddersync:SetColourChangedFn(glow_ColourChanged)
 	inst.OnRemoveEntity = glow_OnRemoveEntity
 end
 
@@ -219,6 +244,9 @@ end
 
 local function glow_AttachToOwner(inst, owner)
 	inst.entity:SetParent(owner.entity)
+	if owner.components.colouradder ~= nil then
+		owner.components.colouradder:AttachChild(inst)
+	end
 	--Dedicated server does not need to spawn the local fx
 	if not TheNet:IsDedicated() then
 		glow_SpawnFxForOwner(inst, owner)
@@ -232,6 +260,8 @@ local function glowfn()
 	inst.entity:AddNetwork()
 
 	inst:AddTag("FX")
+
+	inst:AddComponent("colouraddersync")
 
 	inst.entity:SetPristine()
 

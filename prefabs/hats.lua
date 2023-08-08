@@ -243,6 +243,12 @@ local function MakeHat(name)
         inst.components.insulator:SetSummer()
         inst.components.insulator:SetInsulation(TUNING.INSULATION_SMALL)
 
+        inst:AddComponent("fuel")
+        inst.components.fuel.fuelvalue = TUNING.LARGE_FUEL
+
+        MakeSmallBurnable(inst, TUNING.SMALL_BURNTIME)
+        MakeSmallPropagator(inst)
+
         inst:AddComponent("fueled")
         inst.components.fueled.fueltype = FUELTYPE.USAGE
         inst.components.fueled:InitializeFuelLevel(TUNING.STRAWHAT_PERISHTIME)
@@ -355,15 +361,39 @@ local function MakeHat(name)
         return inst
     end
 
+    fns.woodcarved_custom_init = function(inst)
+        inst:AddTag("wood")
+    end
+
+    fns.woodcarved_onhitbyquakedebris = function(inst, damage)
+        -- NOTE(DiogoW): This is not considering bonus damage and planar damage, etc.
+        if inst.components.armor ~= nil then
+            inst.components.armor:TakeDamage(damage)
+        end
+    end
+
     fns.woodcarved = function()
-        local inst = simple()
+        local inst = simple(fns.woodcarved_custom_init)
+
+        inst.scrapbook_specialinfo = "WOODCARVEDHAT"
 
         if not TheWorld.ismastersim then
             return inst
         end
 
+        inst:AddComponent("resistance")
+        inst.components.resistance:AddResistance("quakedebris")
+        inst.components.resistance:SetOnResistDamageFn(fns.woodcarved_onhitbyquakedebris)
+
         inst:AddComponent("armor")
         inst.components.armor:InitCondition(TUNING.ARMOR_WOODCARVED_HAT, TUNING.ARMOR_WOODCARVED_HAT_ABSORPTION)
+        inst.components.armor:AddWeakness("beaver", TUNING.BEAVER_WOOD_DAMAGE)
+
+        inst:AddComponent("fuel")
+        inst.components.fuel.fuelvalue = TUNING.LARGE_FUEL
+
+        MakeSmallBurnable(inst, TUNING.SMALL_BURNTIME)
+        MakeSmallPropagator(inst)
 
         return inst
     end
@@ -533,6 +563,8 @@ local function MakeHat(name)
     fns.feather = function()
         local inst = simple()
 
+        inst.scrapbook_specialinfo = "FEATHERHAT"
+
         if not TheWorld.ismastersim then
             return inst
         end
@@ -576,6 +608,7 @@ local function MakeHat(name)
         inst.components.floater:SetVerticalOffset(0.1)
         inst.components.floater:SetScale(0.65)
 
+        inst.scrapbook_specialinfo = "BEEFALOHAT"
         if not TheWorld.ismastersim then
             return inst
         end
@@ -707,6 +740,8 @@ local function MakeHat(name)
         inst.components.floater:SetSize("med")
         inst.components.floater:SetScale(0.6)
 
+        inst.scrapbook_specialinfo = "MINERHAT"
+
         if not TheWorld.ismastersim then
             return inst
         end
@@ -822,6 +857,8 @@ local function MakeHat(name)
         inst.components.floater:SetSize("med")
         inst.components.floater:SetVerticalOffset(0.1)
         inst.components.floater:SetScale(0.62)
+
+        inst.scrapbook_specialinfo = "SPIDERHAT"
 
         if not TheWorld.ismastersim then
             return inst
@@ -1073,6 +1110,8 @@ local function MakeHat(name)
         inst.components.floater:SetSize("med")
         inst.components.floater:SetScale(0.65)
 
+        inst.scrapbook_specialinfo = "BUSHHAT"
+
         if not TheWorld.ismastersim then
             return inst
         end
@@ -1127,6 +1166,8 @@ local function MakeHat(name)
 
         inst.components.floater:SetSize("med")
         inst.components.floater:SetScale(0.68)
+
+        inst.scrapbook_specialinfo = "KELPHAT"
 
         if not TheWorld.ismastersim then
             return inst
@@ -1336,6 +1377,7 @@ local function MakeHat(name)
 
         inst.components.floater:SetSize("med")
         inst.components.floater:SetScale(0.65)
+        inst.scrapbook_specialinfo = "BALLOONHAT"
 
         if not TheWorld.ismastersim then
             return inst
@@ -1434,6 +1476,8 @@ local function MakeHat(name)
     fns.walter = function()
         local inst = simple(walter_custom_init)
 
+        inst.scrapbook_specialinfo = "WALTERHAT"
+
         if not TheWorld.ismastersim then
             return inst
         end
@@ -1474,6 +1518,8 @@ local function MakeHat(name)
 
         inst.components.floater:SetSize("med")
         inst.components.floater:SetScale(0.66)
+
+        inst.scrapbook_specialinfo = "ICEHAT"
 
         if not TheWorld.ismastersim then
             return inst
@@ -1554,6 +1600,8 @@ local function MakeHat(name)
     fns.watermelon = function()
         local inst = simple(watermelon_custom_init)
 
+        inst.scrapbook_specialinfo = "WATERMELONHAT"
+
         if not TheWorld.ismastersim then
             return inst
         end
@@ -1618,6 +1666,8 @@ local function MakeHat(name)
 
     fns.mole = function()
         local inst = simple(mole_custom_init)
+
+        inst.scrapbook_specialinfo = "MOLEHAT"
 
         if not TheWorld.ismastersim then
             return inst
@@ -1723,6 +1773,8 @@ local function MakeHat(name)
         inst.components.floater:SetSize("med")
         inst.components.floater:SetScale(0.95)
 
+        inst.scrapbook_specialinfo = "MUSHHAT"
+
         if not TheWorld.ismastersim then
             return inst
         end
@@ -1732,6 +1784,8 @@ local function MakeHat(name)
 
     fns.green_mushroom = function()
         local inst = common_mushroom("spore_small")
+
+        inst.scrapbook_specialinfo = "MUSHHAT"
 
         inst.components.floater:SetSize("med")
 
@@ -1747,6 +1801,8 @@ local function MakeHat(name)
 
         inst.components.floater:SetSize("med")
         inst.components.floater:SetScale(0.7)
+
+        inst.scrapbook_specialinfo = "MUSHHAT"
 
         if not TheWorld.ismastersim then
             return inst
@@ -1930,6 +1986,8 @@ local function MakeHat(name)
         inst.components.floater:SetSize("med")
         inst.components.floater:SetScale(0.72)
 
+        inst.scrapbook_specialinfo = "DESERTHAT"
+
         if not TheWorld.ismastersim then
             return inst
         end
@@ -1997,7 +2055,9 @@ local function MakeHat(name)
     fns.moonstorm_goggles = function()
         local inst = simple(moonstorm_custom_init)
 
-        inst.components.floater:SetSize("med")
+        inst.scrapbook_specialinfo = "MOONSTORMGOGGLESHAT"
+
+        inst.components.floater:SetSize("med")        
         inst.components.floater:SetScale(0.72)
 
         if not TheWorld.ismastersim then
@@ -2128,6 +2188,8 @@ local function MakeHat(name)
 
         inst.components.floater:SetSize("med")
         inst.components.floater:SetScale(0.72)
+
+        inst.scrapbook_specialinfo = "ANTLIONHAT"
 
         if not TheWorld.ismastersim then
             return inst
@@ -2294,6 +2356,8 @@ local function MakeHat(name)
         inst.components.floater:SetSize("med")
         inst.components.floater:SetScale(0.72)
 
+        inst.scrapbook_specialinfo = "POLLYROGERSHAT"
+
         inst.defaultanim = "anim"
 
         if not TheWorld.ismastersim then
@@ -2367,6 +2431,8 @@ local function MakeHat(name)
         inst.components.floater:SetSize("med")
         inst.components.floater:SetScale(0.72)
 
+        inst.scrapbook_specialinfo = "MONKEYSMALLHAT"
+
         if not TheWorld.ismastersim then
             return inst
         end
@@ -2407,6 +2473,8 @@ local function MakeHat(name)
 
         inst.components.floater:SetSize("med")
         inst.components.floater:SetScale(0.72)
+
+        inst.scrapbook_specialinfo = "MONKEYMEDIUMHAT"
 
         if not TheWorld.ismastersim then
             return inst
@@ -2543,6 +2611,8 @@ local function MakeHat(name)
         inst.components.floater:SetSize("med")
         inst.components.floater:SetScale(0.68)
 
+        inst.scrapbook_specialinfo = "MERMHAT"
+
         if not TheWorld.ismastersim then
             return inst
         end
@@ -2599,6 +2669,8 @@ local function MakeHat(name)
         local inst = simple()
 
         inst.components.floater:SetSize("med")
+
+        inst.scrapbook_specialinfo = "BATNOSEHAT"
 
         if not TheWorld.ismastersim then
             return inst
@@ -2657,6 +2729,8 @@ local function MakeHat(name)
         inst.components.floater:SetSize("med")
         inst.components.floater:SetScale(0.65)
 
+        inst.scrapbook_specialinfo = "PLANTREGISTRYHAT"
+
         if not TheWorld.ismastersim then
             return inst
         end
@@ -2696,6 +2770,8 @@ local function MakeHat(name)
 
         inst.components.floater:SetSize("med")
         inst.components.floater:SetScale(0.72)
+
+        inst.scrapbook_specialinfo = "NUTRIENTHAT"
 
         if not TheWorld.ismastersim then
             return inst
@@ -2938,6 +3014,8 @@ local function MakeHat(name)
         inst.components.floater:SetSize("med")
         inst.components.floater:SetScale(0.68)
 
+        inst.scrapbook_specialinfo = "ALTERGUARDIANHAT"
+
         if not TheWorld.ismastersim then
             return inst
         end
@@ -3110,10 +3188,15 @@ local function MakeHat(name)
         inst.components.damagetyperesist:RemoveResist("lunar_aligned", inst, "setbonus")
     end
 
+	local lunarplant_swap_data_broken = { bank = "hat_lunarplant", anim = "broken" }
+
 	local function lunarplant_onbroken(inst)
 		if inst.components.equippable ~= nil then
 			inst:RemoveComponent("equippable")
 			inst.AnimState:PlayAnimation("broken")
+			inst.components.floater:SetSwapData(lunarplant_swap_data_broken)
+			inst:AddTag("broken")
+			inst.components.inspectable.nameoverride = "BROKEN_FORGEDITEM"
 		end
 	end
 
@@ -3125,6 +3208,9 @@ local function MakeHat(name)
 			inst.components.equippable:SetOnUnequip(lunarplant_onunequip)
 			inst.components.equippable:SetOnEquipToModel(fns.simple_onequiptomodel)
 			inst.AnimState:PlayAnimation("anim")
+			inst.components.floater:SetSwapData(swap_data)
+			inst:RemoveTag("broken")
+			inst.components.inspectable.nameoverride = nil
 		end
 	end
 
@@ -3132,6 +3218,7 @@ local function MakeHat(name)
 		inst:AddTag("lunarplant")
 		inst:AddTag("gestaltprotection")
 		inst:AddTag("goggles")
+		inst:AddTag("show_broken_ui")
 
 		--waterproofer (from waterproofer component) added to pristine state for optimization
 		inst:AddTag("waterproofer")
@@ -3311,10 +3398,15 @@ local function MakeHat(name)
 		voidcloth_setbuffowner(inst, nil)
 	end
 
+	local voidcloth_swap_data_broken = { bank = "hat_voidcloth", anim = "broken" }
+
 	fns.voidcloth_onbroken = function(inst)
 		if inst.components.equippable ~= nil then
 			inst:RemoveComponent("equippable")
 			inst.AnimState:PlayAnimation("broken")
+			inst.components.floater:SetSwapData(voidcloth_swap_data_broken)
+			inst:AddTag("broken")
+			inst.components.inspectable.nameoverride = "BROKEN_FORGEDITEM"
 		end
 	end
 
@@ -3326,12 +3418,17 @@ local function MakeHat(name)
 			inst.components.equippable:SetOnUnequip(fns.voidcloth_onunequip)
 			inst.components.equippable:SetOnEquipToModel(fns.simple_onequiptomodel)
 			inst.AnimState:PlayAnimation("anim")
+			inst.components.floater:SetSwapData(swap_data)
+			inst:RemoveTag("broken")
+			inst.components.inspectable.nameoverride = nil
 		end
 	end
 
 	fns.voidcloth_custom_init = function(inst)
 		inst:AddTag("cloth")
 		inst:AddTag("shadow_item")
+		inst:AddTag("show_broken_ui")
+		inst:AddTag("miasmaimmune")
 
 		--shadowlevel (from shadowlevel component) added to pristine state for optimization
 		inst:AddTag("shadowlevel")
@@ -3349,10 +3446,8 @@ local function MakeHat(name)
 		local inst = simple(fns.voidcloth_custom_init)
 
 		inst.components.floater:SetSize("med")
-		inst.components.floater:SetVerticalOffset(0.25)
+		inst.components.floater:SetVerticalOffset(0.1)
 		inst.components.floater:SetScale(.75)
-
-        inst:AddTag("miasmaimmune")
 
         inst.scrapbook_specialinfo = "VOIDCLOTHHAT"
 
@@ -3687,6 +3782,12 @@ local function FollowFx_OnRemoveEntity(inst)
 	end
 end
 
+local function FollowFx_ColourChanged(inst, r, g, b, a)
+	for i, v in ipairs(inst.fx) do
+		v.AnimState:SetAddColour(r, g, b, a)
+	end
+end
+
 local function SpawnFollowFxForOwner(inst, owner, createfn, framebegin, frameend, isfullhelm)
 	local follow_symbol = isfullhelm and owner:HasTag("player") and owner.AnimState:BuildHasSymbol("headbase_hat") and "headbase_hat" or "swap_hat"
 	inst.fx = {}
@@ -3700,6 +3801,7 @@ local function SpawnFollowFxForOwner(inst, owner, createfn, framebegin, frameend
 		fx.components.highlightchild:SetOwner(owner)
 		table.insert(inst.fx, fx)
 	end
+	inst.components.colouraddersync:SetColourChangedFn(FollowFx_ColourChanged)
 	inst.OnRemoveEntity = FollowFx_OnRemoveEntity
 end
 
@@ -3713,6 +3815,9 @@ local function MakeFollowFx(name, data)
 
 	local function AttachToOwner(inst, owner)
 		inst.entity:SetParent(owner.entity)
+		if owner.components.colouradder ~= nil then
+			owner.components.colouradder:AttachChild(inst)
+		end
 		--Dedicated server does not need to spawn the local fx
 		if not TheNet:IsDedicated() then
 			SpawnFollowFxForOwner(inst, owner, data.createfn, data.framebegin, data.frameend, data.isfullhelm)
@@ -3726,6 +3831,8 @@ local function MakeFollowFx(name, data)
 		inst.entity:AddNetwork()
 
 		inst:AddTag("FX")
+
+		inst:AddComponent("colouraddersync")
 
 		if data.common_postinit ~= nil then
 			data.common_postinit(inst)

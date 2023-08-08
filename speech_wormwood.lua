@@ -909,8 +909,14 @@ return{
     },
     ANNOUNCE_WOLFGANG_WIMPY_COACHING = "only_used_by_wolfgang",
     ANNOUNCE_WOLFGANG_MIGHTY_COACHING = "only_used_by_wolfgang",
-    ANNOUNCE_WOLFGANG_BEGING_COACHING = "only_used_by_wolfgang",
+    ANNOUNCE_WOLFGANG_BEGIN_COACHING = "only_used_by_wolfgang",
     ANNOUNCE_WOLFGANG_END_COACHING = "only_used_by_wolfgang",
+    ANNOUNCE_WOLFGANG_NOTEAM = 
+    {
+        "only_used_by_wolfang",
+        "only_used_by_wolfang",
+        "only_used_by_wolfang",
+    },
 
 	BATTLECRY =
 	{
@@ -4822,6 +4828,8 @@ return{
 		PICKAXE_LUNARPLANT = "Mean friend good at breaking things",
 		SHOVEL_LUNARPLANT = "Mean friend help dig",
 
+		BROKEN_FORGEDITEM = "Aww. Broke",
+
         PUNCHINGBAG = "It okay. Not real",
 
         -- Rifts 2
@@ -4879,6 +4887,11 @@ return{
         SUPPORT_PILLAR_COMPLETE = "Ahhh. Safer now",
         SUPPORT_PILLAR_BROKEN = "Fell down",
 
+		SUPPORT_PILLAR_DREADSTONE_SCAFFOLD = "Not done",
+		SUPPORT_PILLAR_DREADSTONE = "Cracking? Uh oh...",
+		SUPPORT_PILLAR_DREADSTONE_COMPLETE = "Thank you, tall rocks!",
+		SUPPORT_PILLAR_DREADSTONE_BROKEN = "Goodbye, tall rocks",
+
         WOLFGANG_WHISTLE = "Muscle man's tweet-maker",
     },
 
@@ -4896,7 +4909,6 @@ return{
     DESCRIBE_PLANTSTRESSORMOISTURE = "Thirsty",
     DESCRIBE_PLANTSTRESSORNUTRIENTS = "Needs food!",
     DESCRIBE_PLANTSTRESSORHAPPINESS = "Wants to talk",
-    DESCRIBE_PLANT_IDENTIFIED = "Is {plantname} friend!",
 
     EAT_FOOD =
     {

@@ -9,11 +9,11 @@ local prefabs =
 }
 
 local function GetHealthFn(inst, eater)
-    return eater:HasTag("cursemaster") and 0 or -TUNING.HEALING_MED
+    return eater ~= nil and eater:HasTag("cursemaster") and 0 or -TUNING.HEALING_MED
 end
 
 local function GetSanityFn(inst, eater)
-    return eater:HasTag("cursemaster") and 0 or -TUNING.SANITY_MED
+    return eater ~= nil and eater:HasTag("cursemaster") and 0 or -TUNING.SANITY_MED
 end
 
 local function MakeWereItem(were_mode)
@@ -33,6 +33,7 @@ local function MakeWereItem(were_mode)
 
         inst:AddTag("monstermeat")
         inst:AddTag("wereitem")
+        inst:AddTag("unsafefood")
 
         if were_mode == "goose" then
             MakeInventoryFloatable(inst, "small", .15, { 1.3, 1.1, 1.3 })
@@ -77,6 +78,7 @@ local function MakeWereItem(were_mode)
     return Prefab("wereitem_"..were_mode, fn, assets, prefabs)
 end
 
-return MakeWereItem("beaver"),
+return
+    MakeWereItem("beaver"),
     MakeWereItem("moose"),
     MakeWereItem("goose")

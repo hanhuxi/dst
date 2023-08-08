@@ -905,8 +905,14 @@ return{
     },
     ANNOUNCE_WOLFGANG_WIMPY_COACHING = "only_used_by_wolfgang",
     ANNOUNCE_WOLFGANG_MIGHTY_COACHING = "only_used_by_wolfgang",
-    ANNOUNCE_WOLFGANG_BEGING_COACHING = "only_used_by_wolfgang",
+    ANNOUNCE_WOLFGANG_BEGIN_COACHING = "only_used_by_wolfgang",
     ANNOUNCE_WOLFGANG_END_COACHING = "only_used_by_wolfgang",
+    ANNOUNCE_WOLFGANG_NOTEAM = 
+    {
+        "only_used_by_wolfgang",
+        "only_used_by_wolfgang",
+        "only_used_by_wolfgang",
+    },
 
 	BATTLECRY =
 	{
@@ -4818,6 +4824,8 @@ return{
 		PICKAXE_LUNARPLANT = "A surprisingly effective mining and crushing implement.",
 		SHOVEL_LUNARPLANT = "A surprisingly effective digging implement.",
 
+		BROKEN_FORGEDITEM = "With the right materials, it could be repaired.",
+
         PUNCHINGBAG = "A useful tool for testing a weapon's efficacy.",
 
         -- Rifts 2
@@ -4875,6 +4883,11 @@ return{
         SUPPORT_PILLAR_COMPLETE = "That should stabilize the cave's ceiling for now.",
         SUPPORT_PILLAR_BROKEN = "It would be prudent to attempt some repairs.",
 
+		SUPPORT_PILLAR_DREADSTONE_SCAFFOLD = "It appears some construction is required.",
+		SUPPORT_PILLAR_DREADSTONE = "I'm afraid it will not be able to withstand these tectonic shifts forever.",
+		SUPPORT_PILLAR_DREADSTONE_COMPLETE = "Dreadstone. This will hold.",
+		SUPPORT_PILLAR_DREADSTONE_BROKEN = "Broken? Perhaps this material is not as indestructible as I surmised.",
+
         WOLFGANG_WHISTLE = "Please try to keep the noise to a minimum, dear.",
     },
 
@@ -4892,7 +4905,6 @@ return{
     DESCRIBE_PLANTSTRESSORMOISTURE = "It could use a little hydration.",
     DESCRIBE_PLANTSTRESSORNUTRIENTS = "It requires more nutrient-rich soil.",
     DESCRIBE_PLANTSTRESSORHAPPINESS = "I should stimulate its growth with some conversation.",
-    DESCRIBE_PLANT_IDENTIFIED = "only_used_by_wormwood",
 
     EAT_FOOD =
     {

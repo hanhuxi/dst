@@ -905,8 +905,14 @@ return{
     },
     ANNOUNCE_WOLFGANG_WIMPY_COACHING = "only_used_by_wolfgang",
     ANNOUNCE_WOLFGANG_MIGHTY_COACHING = "only_used_by_wolfgang",
-    ANNOUNCE_WOLFGANG_BEGING_COACHING = "only_used_by_wolfgang",
+    ANNOUNCE_WOLFGANG_BEGIN_COACHING = "only_used_by_wolfgang",
     ANNOUNCE_WOLFGANG_END_COACHING = "only_used_by_wolfgang",
+    ANNOUNCE_WOLFGANG_NOTEAM = 
+    {
+        "only_used_by_wolfgang",
+        "only_used_by_wolfgang",
+        "only_used_by_wolfgang",
+    },
 
 	BATTLECRY =
 	{
@@ -4818,6 +4824,8 @@ return{
 		PICKAXE_LUNARPLANT = "Neither stone nor structure shall stand in my way!",
 		SHOVEL_LUNARPLANT = "The ground stands no chance against me.",
 
+		BROKEN_FORGEDITEM = "'Tis battered, but not lost!",
+
         PUNCHINGBAG = "Alas, 'tis not a very lively sparring partner.",
 
         -- Rifts 2
@@ -4875,6 +4883,11 @@ return{
         SUPPORT_PILLAR_COMPLETE = "A glorious monument to our resilience!",
         SUPPORT_PILLAR_BROKEN = "We shall rebuild!",
 
+		SUPPORT_PILLAR_DREADSTONE_SCAFFOLD = "The building hath commenced!",
+		SUPPORT_PILLAR_DREADSTONE = "This noble pillar hath withstood much for our sakes.",
+		SUPPORT_PILLAR_DREADSTONE_COMPLETE = "'Twould withstand Ragnarok.",
+		SUPPORT_PILLAR_DREADSTONE_BROKEN = "How the mighty have fallen.",
+
         WOLFGANG_WHISTLE = "My ally will get our forces fighting fit!",
     },
 
@@ -4892,7 +4905,6 @@ return{
     DESCRIBE_PLANTSTRESSORMOISTURE = "It thirsts for water.",
     DESCRIBE_PLANTSTRESSORNUTRIENTS = "You are unhappy with the dirt you have? Do not look to me to help you!",
     DESCRIBE_PLANTSTRESSORHAPPINESS = "The feeble thing needs conversation to grow? Vikings thrive in stoic silence!",
-    DESCRIBE_PLANT_IDENTIFIED = "only_used_by_wormwood",
 
     EAT_FOOD =
     {

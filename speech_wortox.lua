@@ -910,8 +910,14 @@ return{
     },
     ANNOUNCE_WOLFGANG_WIMPY_COACHING = "only_used_by_wolfgang",
     ANNOUNCE_WOLFGANG_MIGHTY_COACHING = "only_used_by_wolfang",
-    ANNOUNCE_WOLFGANG_BEGING_COACHING = "only_used_by_wolfang",
+    ANNOUNCE_WOLFGANG_BEGIN_COACHING = "only_used_by_wolfang",
     ANNOUNCE_WOLFGANG_END_COACHING = "only_used_by_wolfang",
+    ANNOUNCE_WOLFGANG_NOTEAM = 
+    {
+        "only_used_by_wolfang",
+        "only_used_by_wolfang",
+        "only_used_by_wolfang",
+    },
 
 	BATTLECRY =
 	{
@@ -4815,7 +4821,7 @@ return{
 		LUNAR_FORGE = "There isn't any iron in that forge, is there?",
 		LUNAR_FORGE_KIT = "Shall we forge ahead?",
 
-		--LUNARPLANT_KIT = "A stitch here and there for a quick repair.",
+		LUNARPLANT_KIT = "A stitch here and there for a quick repair.",
 		ARMOR_LUNARPLANT = "Strong and light, quite good in a fight.",
 		LUNARPLANTHAT = "It has me looking on the bright side, hyuyu!",
 		BOMB_LUNARPLANT = "This will be the start of some wonderful pranks.",
@@ -4823,6 +4829,8 @@ return{
 		SWORD_LUNARPLANT = "A swish to and fro will cut down my foe.",
 		PICKAXE_LUNARPLANT = "To bash and break.",
 		SHOVEL_LUNARPLANT = "Dig a hole to who knows where!",
+
+		BROKEN_FORGEDITEM = "This broken pile might still be worthwhile.",
 
         PUNCHINGBAG = "It does not complain, for it feels no pain!",
 
@@ -4836,7 +4844,7 @@ return{
         FUSED_SHADELING_BOMB = "Keep away, I don't want to play!",
 
 		VOIDCLOTH = "Bits of tattered reality. And it comes in my color!",
-		--VOIDCLOTH_KIT = "A stitch here and there for a quick repair.",
+		VOIDCLOTH_KIT = "A stitch here and there for a quick repair.",
 		VOIDCLOTHHAT = "A hood of night, that blocks out all light.",
 		ARMOR_VOIDCLOTH = "It broke the chains of its previous plane.",
 
@@ -4881,6 +4889,11 @@ return{
         SUPPORT_PILLAR_COMPLETE = "Thank you for your support, hyuyu!",
         SUPPORT_PILLAR_BROKEN = "All that trouble for a pile of rubble.",
 
+		SUPPORT_PILLAR_DREADSTONE_SCAFFOLD = "A pile of pillar-in-progress.",
+		SUPPORT_PILLAR_DREADSTONE = "Alas and alack, the stone has a crack!",
+		SUPPORT_PILLAR_DREADSTONE_COMPLETE = "What a marvel! Shame it's not marble.",
+		SUPPORT_PILLAR_DREADSTONE_BROKEN = "The Pillar of Dread looks rather dead, hyuyu!",
+
         WOLFGANG_WHISTLE = "Who knew a whistle held such sway, it makes folks listen to what you say!",
     },
 
@@ -4898,7 +4911,6 @@ return{
     DESCRIBE_PLANTSTRESSORMOISTURE = "It needs a drink, I think.",
     DESCRIBE_PLANTSTRESSORNUTRIENTS = "It needs better soil or our hard work will be spoiled!",
     DESCRIBE_PLANTSTRESSORHAPPINESS = "What's that? You'd like to chat?",
-    DESCRIBE_PLANT_IDENTIFIED = "only_used_by_wormwood",
 
     EAT_FOOD =
     {

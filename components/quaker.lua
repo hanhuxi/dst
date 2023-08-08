@@ -370,34 +370,29 @@ local GetSpawnPoint = _ismastersim and function(pt, rad, minrad)
             and not _world.Map:IsPointNearHole(Vector3(x, 0, z))
     end)
 
-    -- DONT DROP NEAR QUAKE BLOCKERS.
-    local newpt = pt + result_offset
-    local ents = TheSim:FindEntities(newpt.x, newpt.y, newpt.z, TUNING.QUAKE_BLOCKER_RANGE, QUAKE_BLOCKER_MUST_TAGS)
-    if #ents > 0 then
-        return nil
+    if result_offset ~= nil then
+        local newpt = pt + result_offset
+
+        -- DONT DROP NEAR QUAKE BLOCKERS.
+        local num_ents = TheSim:CountEntities(newpt.x, newpt.y, newpt.z, TUNING.QUAKE_BLOCKER_RANGE, QUAKE_BLOCKER_MUST_TAGS)
+
+        return num_ents <= 0 and newpt or nil
     end
 
-    return result_offset ~= nil and pt + result_offset or nil
 end or nil
 
-local STRUCTURES_CANT_TAGS = { "INLIMBO", "burnt" } -- Excluding "fire" tag for firepits.
-local STRUCTURES_ONEOF_TAGS = { "wall", "structure" }
 local DoDropForPlayer = _ismastersim and function(player, reschedulefn)
-    local px, py, pz = player.Transform:GetWorldPosition()
-    local char_pos = Vector3(px, py, pz)
+    local char_pos = Vector3(player.Transform:GetWorldPosition())
     local override_prefab, rad, override_density
     local riftspawner = _world.components.riftspawner
     if riftspawner and riftspawner:IsShadowPortalActive() and math.random() < TUNING.RIFT_SHADOW1_QUAKER_ODDS then
-        local ents = TheSim:FindEntities(px, py, pz, TUNING.RIFT_SHADOW1_QUAKER_RADIUS, nil, STRUCTURES_CANT_TAGS, STRUCTURES_ONEOF_TAGS)
-        if ents[1] == nil then
-            override_prefab = "cavein_boulder"
-            rad = TUNING.RIFT_SHADOW1_QUAKER_RADIUS
-            override_density = 0
-        end
+        override_prefab = "cavein_boulder"
+        rad = TUNING.RIFT_SHADOW1_QUAKER_RADIUS
+        override_density = 0
     end
+	player:ShakeCamera(CAMERASHAKE.FULL, 0.7, 0.02, .75)
     local spawn_point = GetSpawnPoint(char_pos, rad)
     if spawn_point ~= nil then
-        player:ShakeCamera(CAMERASHAKE.FULL, 0.7, 0.02, .75)
         SpawnDebris(spawn_point, override_prefab, override_density)
     end
     reschedulefn(player)
@@ -465,13 +460,13 @@ EndQuake = _ismastersim and function(inst, continue)
     end
 
     for i, op in ipairs(_originalplayers) do
-	    for j, ap in ipairs(_activeplayers) do
-			if op == ap and not op:HasTag("playerghost") then
-				AwardPlayerAchievement("survive_earthquake", op)
-				break
-			end
-		end
-	end
+        for j, ap in ipairs(_activeplayers) do
+            if op == ap and not op:HasTag("playerghost") then
+                AwardPlayerAchievement("survive_earthquake", op)
+                break
+            end
+        end
+    end
 end or nil
 
 local StartQuake = _ismastersim and function(inst, data, overridetime)
@@ -480,16 +475,16 @@ local StartQuake = _ismastersim and function(inst, data, overridetime)
     _debrispersecond = FunctionOrValue(data.debrispersecond)
     _mammalsremaining = FunctionOrValue(data.mammals)
 
-	_originalplayers = {}
+    _originalplayers = {}
     for i, v in ipairs(_activeplayers) do
         ScheduleDrop(v)
 
         table.insert(_originalplayers, v)
     end
 
-    inst:PushEvent("startquake")
+	local quaketime = overridetime or FunctionOrValue(data.quaketime)
+	inst:PushEvent("startquake", { duration = quaketime, debrisperiod = GetTimeForNextDebris() })
 
-    local quaketime = overridetime or FunctionOrValue(data.quaketime)
     UpdateTask(quaketime, EndQuake, true)
     _state = QUAKESTATE.QUAKING
 end or nil

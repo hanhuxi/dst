@@ -110,15 +110,6 @@ GymStates.AddGymStates = function(states, actionhandlers, events)
                 inst.sg.statemem.dontleavegym = true
                 inst.sg:GoToState("mighty_gym_workout_loop")
             end),
-
-            EventHandler("auto_success", function(inst, data)
-                inst.sg.statemem.dontleavegym = true
-                if data and data.perfect then
-                    inst.sg:GoToState("mighty_gym_success_perfect")
-                else
-                    inst.sg:GoToState("mighty_gym_success")
-                end
-            end),
         },
 
         onexit = function(inst)
@@ -161,7 +152,7 @@ GymStates.AddGymStates = function(states, actionhandlers, events)
         {
             EventHandler("animqueueover", function(inst)
                 --if inst.components.mightiness:GetPercent() == 1 then
-                    print(inst.components.mightiness:GetCurrent(), inst.components.mightiness:GetMax(),inst.components.mightiness:GetOverMax())
+                --    print(inst.components.mightiness:GetCurrent(), inst.components.mightiness:GetMax(),inst.components.mightiness:GetOverMax())
                 if inst.components.mightiness:GetCurrent() >= inst.components.mightiness:GetMax() + inst.components.mightiness:GetOverMax() then 
                     exitgym(inst)
                 else
@@ -211,7 +202,7 @@ GymStates.AddGymStates = function(states, actionhandlers, events)
         {
             EventHandler("animqueueover", function(inst)
                 --if inst.components.mightiness:GetPercent() == 1 then
-                         print(inst.components.mightiness:GetCurrent(), inst.components.mightiness:GetMax(),inst.components.mightiness:GetOverMax())
+                --         print(inst.components.mightiness:GetCurrent(), inst.components.mightiness:GetMax(),inst.components.mightiness:GetOverMax())
                 if inst.components.mightiness:GetCurrent() >= inst.components.mightiness:GetMax() + inst.components.mightiness:GetOverMax() then 
                     exitgym(inst)
                 else                

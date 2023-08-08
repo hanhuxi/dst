@@ -208,7 +208,7 @@ end
 
 -- NOTES(JBK): More of an internal function to get a raw number elsewhere.
 function Moisture:_GetMoistureRateAssumingRain()
-	if self.inst:HasTag("rainimmunity") then
+	if self.inst.components.rainimmunity ~= nil then
 		return 0
 	end
 
@@ -231,6 +231,21 @@ function Moisture:_GetMoistureRateAssumingRain()
 
     local rate = easing.inSine(TheWorld.state.precipitationrate, self.minMoistureRate, self.maxMoistureRate, 1)
     return rate * (1 - waterproofmult)
+end
+
+-- DiogoW: Used by events that add moisture: waves, row fail, etc.
+function Moisture:GetWaterproofness()
+    local waterproofness =
+        (   self.inst.components.inventory ~= nil and
+            self.inst.components.inventory:GetWaterproofness() or 0
+        ) +
+        (   self.inherentWaterproofness or 0
+        ) +
+        (
+            self.waterproofnessmodifiers:Get() or 0
+        )
+    
+    return math.clamp(waterproofness, 0, 1)
 end
 
 function Moisture:GetMoistureRate()

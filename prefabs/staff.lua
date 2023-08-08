@@ -168,7 +168,8 @@ local function onattack_blue(inst, attacker, target, skipsanity)
         target:PushEvent("attacked", { attacker = attacker, damage = 0, weapon = inst })
     end
 
-    if target.components.freezable ~= nil then
+	--V2C: valid check in case any of the previous callbacks or events removed the target
+	if target.components.freezable ~= nil and target:IsValid() then
         target.components.freezable:AddColdness(1)
         target.components.freezable:SpawnShatterFX()
     end
@@ -431,7 +432,7 @@ local function blinkstaff_reticuletargetfn()
     rotation = rotation * DEGREES
     for r = 13, 1, -1 do
         local numtries = 2 * PI * r
-        local offset = FindWalkableOffset(pos, rotation, r, numtries, false, true, NoHoles)
+        local offset = FindWalkableOffset(pos, rotation, r, numtries, false, true, NoHoles, false, true)
         if offset ~= nil then
             pos.x = pos.x + offset.x
             pos.y = 0
@@ -626,6 +627,10 @@ local function destroystructure(staff, target)
     if target.components.stewer ~= nil then
         target.components.stewer:Harvest()
     end
+
+	if target.components.constructionsite ~= nil then
+		target.components.constructionsite:DropAllMaterials()
+	end
 
    	target:PushEvent("ondeconstructstructure", caster)
 
@@ -994,6 +999,8 @@ local function opal()
     inst.components.reticule.targetfn = light_reticuletargetfn
     inst.components.reticule.ease = true
     inst.components.reticule.ispassableatallpoints = true
+
+    inst.scrapbook_specialinfo = "OPALSTAFF"
 
     if not TheWorld.ismastersim then
         return inst

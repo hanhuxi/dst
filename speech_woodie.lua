@@ -906,8 +906,14 @@ return{
     },
     ANNOUNCE_WOLFGANG_WIMPY_COACHING = "only_used_by_wolfgang",
     ANNOUNCE_WOLFGANG_MIGHTY_COACHING = "only_used_by_wolfgang",
-    ANNOUNCE_WOLFGANG_BEGING_COACHING = "only_used_by_wolfgang",
+    ANNOUNCE_WOLFGANG_BEGIN_COACHING = "only_used_by_wolfgang",
     ANNOUNCE_WOLFGANG_END_COACHING = "only_used_by_wolfgang",
+    ANNOUNCE_WOLFGANG_NOTEAM = 
+    {
+        "only_used_by_wolfang",
+        "only_used_by_wolfang",
+        "only_used_by_wolfang",
+    },
 
 	BATTLECRY =
 	{
@@ -4819,6 +4825,8 @@ return{
 		PICKAXE_LUNARPLANT = "Using a plant to break stone just feels backwards somehow.",
 		SHOVEL_LUNARPLANT = "Let's get digging, eh?",
 
+		BROKEN_FORGEDITEM = "That thing's seen better days.",
+
         PUNCHINGBAG = "I should see how much of a punch I'm packing, eh?",
 
         -- Rifts 2
@@ -4876,6 +4884,11 @@ return{
         SUPPORT_PILLAR_COMPLETE = "Tall and sturdy as a redwood.",
         SUPPORT_PILLAR_BROKEN = "Shucks, I came too late to yell \"timbeerrrrr\"!",
 
+		SUPPORT_PILLAR_DREADSTONE_SCAFFOLD = "Needs some more work yet, eh?",
+		SUPPORT_PILLAR_DREADSTONE = "It's startin' to look a little unsteady.",
+		SUPPORT_PILLAR_DREADSTONE_COMPLETE = "She'll take a few swings, eh, Luce?",
+		SUPPORT_PILLAR_DREADSTONE_BROKEN = "Well, that's all she wrote.",
+
         WOLFGANG_WHISTLE = "He'd better not ask me to start doing jumping jacks...",
     },
 
@@ -4893,7 +4906,6 @@ return{
     DESCRIBE_PLANTSTRESSORMOISTURE = "It could use some more water, eh?",
     DESCRIBE_PLANTSTRESSORNUTRIENTS = "Might not be enough nutrients in the soil...",
     DESCRIBE_PLANTSTRESSORHAPPINESS = "Maybe it just needs a little pep talk, eh?",
-    DESCRIBE_PLANT_IDENTIFIED = "only_used_by_wormwood",
 
     EAT_FOOD =
     {

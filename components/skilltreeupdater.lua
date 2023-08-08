@@ -77,6 +77,7 @@ function SkillTreeUpdater:ActivateSkill_Server(skill, unlocks) -- NOTES(JBK): Us
         onactivate(self.inst)
     end
     self.inst:PushEvent("onactivateskill_server", {skill = skill,})
+    self.inst._skilltreeactivatedany:push()
 end
 function SkillTreeUpdater:ActivateSkill(skill, prefab, fromrpc)
     -- should ignore the prefab paramater as that's just used skilltreedata at frontend
@@ -242,10 +243,11 @@ function SkillTreeUpdater:SendFromSkillTreeBlob(inst)
     -- The worst case is that ValidateCharacterData fails and nothing changes.
     if self.skilltreeblob ~= nil and (self.skilltreeblobprefab == nil or self.skilltreeblobprefab == self.inst.prefab) then
         local activatedskills, _badskillxp_donotuse = self.skilltree:DecodeSkillTreeData(self.skilltreeblob)
+        -- Delete the stored cache if the validation fails it is bad to keep around.
+        self.skilltreeblob = nil
+        self.skilltreeblobprefab = nil
         -- At this point the client will have sent their current XP to measure from so use that value and not the local stored invalid XP.
         if self.skilltree:ValidateCharacterData(self.inst.prefab, activatedskills, self:GetSkillXP()) then
-            self.skilltreeblob = nil
-            self.skilltreeblobprefab = nil
             if activatedskills ~= nil then
                 self:SetSilent(true)
                 for skill, _ in pairs(activatedskills) do

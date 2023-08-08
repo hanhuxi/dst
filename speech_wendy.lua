@@ -909,8 +909,14 @@ return{
     },
     ANNOUNCE_WOLFGANG_WIMPY_COACHING = "only_used_by_wolfgang",
     ANNOUNCE_WOLFGANG_MIGHTY_COACHING = "only_used_by_wolfgang",
-    ANNOUNCE_WOLFGANG_BEGING_COACHING = "only_used_by_wolfgang",
+    ANNOUNCE_WOLFGANG_BEGIN_COACHING = "only_used_by_wolfgang",
     ANNOUNCE_WOLFGANG_END_COACHING = "only_used_by_wolfgang",
+    ANNOUNCE_WOLFGANG_NOTEAM = 
+    {
+        "only_used_by_wolfgang",
+        "only_used_by_wolfgang",
+        "only_used_by_wolfgang",
+    },
 
 	BATTLECRY =
 	{
@@ -4822,6 +4828,8 @@ return{
 		PICKAXE_LUNARPLANT = "It makes the endless toil a bit easier.",
 		SHOVEL_LUNARPLANT = "Some things should stay buried... but not today.",
 
+		BROKEN_FORGEDITEM = "A broken mockery of what it once was.",
+
         PUNCHINGBAG = "Some are simply made to suffer.",
 
         -- Rifts 2
@@ -4879,6 +4887,11 @@ return{
         SUPPORT_PILLAR_COMPLETE = "It promises protection, but for how long?",
         SUPPORT_PILLAR_BROKEN = "Nothing good can last...",
 
+		SUPPORT_PILLAR_DREADSTONE_SCAFFOLD = "What hides beneath that shroud?",
+		SUPPORT_PILLAR_DREADSTONE = "The cracks have started to show...",
+		SUPPORT_PILLAR_DREADSTONE_COMPLETE = "Dreadful, yet comforting.",
+		SUPPORT_PILLAR_DREADSTONE_BROKEN = "Eventually, we all fall.",
+
         WOLFGANG_WHISTLE = "Abigail, I saw you whispering at Wolfgang to make us do pushups!",
     },
 
@@ -4896,7 +4909,6 @@ return{
     DESCRIBE_PLANTSTRESSORMOISTURE = "Perhaps it might need some water?",
     DESCRIBE_PLANTSTRESSORNUTRIENTS = "It is starved for nutrients.",
     DESCRIBE_PLANTSTRESSORHAPPINESS = "Perhaps it just needs some reassurance.",
-    DESCRIBE_PLANT_IDENTIFIED = "only_used_by_wormwood",
 
     EAT_FOOD =
     {

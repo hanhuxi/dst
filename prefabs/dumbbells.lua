@@ -392,11 +392,10 @@ local function UpdateImages(inst, range)
     inst.swap_dumbbell = "swap_dumbbell_heat"..tostring(range)
     inst.swap_dumbbell_symbol = "swap_dumbbell_heat"
 
-    if inst.components.inventoryitem.owner then
+    if inst.components.inventoryitem.owner ~= nil and inst.components.equippable ~= nil and inst.components.equippable:IsEquipped() then
         inst.components.inventoryitem.owner.AnimState:OverrideSymbol("swap_object", inst.swap_dumbbell, inst.swap_dumbbell_symbol)
     end
 
-    inst.scrapbook_anim = tostring(range)
     local skinname = inst:GetSkinName()
     inst.components.inventoryitem:ChangeImageName((skinname or "dumbbell_heat")..tostring(range))
     if range == 5 then
@@ -512,14 +511,18 @@ local function MakeDumbbell(name, consumption, efficiency, damage, impact_sound,
         
         if name == "dumbbell_bluegem" then
             inst:AddTag("iceattack")
-        end
-        if name == "dumbbell_redgem" then
+            inst.scrapbook_specialinfo = "DUMBBELLBLUE"
+        elseif name == "dumbbell_redgem" then
             inst:AddTag("fireattack")
-        end
-
-        if name == "dumbbell_heat" then
+            inst.scrapbook_specialinfo = "DUMBBELLRED"
+        elseif name == "dumbbell_heat" then
             inst:AddTag("HASHEATER")
             inst:AddTag("icebox_valid")
+            inst:AddTag("heatrock")
+            inst.scrapbook_anim = "idle"
+            inst.scrapbook_specialinfo = "DUMBBELLHEAT"
+        else 
+            inst.scrapbook_specialinfo = "DUMBBELL"
         end
 
         inst:AddComponent("reticule")
@@ -562,6 +565,9 @@ local function MakeDumbbell(name, consumption, efficiency, damage, impact_sound,
 
             inst.components.finiteuses:SetMaxUses(TUNING.DUMBBELL_HEAT_MAX_USES)
             inst.components.finiteuses:SetUses(TUNING.DUMBBELL_HEAT_MAX_USES)
+
+            inst:AddComponent("tradable")
+            inst.components.tradable.rocktribute = 6
 
             inst:AddComponent("temperature")
             inst.components.temperature.current = TheWorld.state.temperature

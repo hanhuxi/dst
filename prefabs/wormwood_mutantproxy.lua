@@ -9,17 +9,26 @@ local SPAWN_LIFETIME = 15*FRAMES
 local function onbuilt(inst, data)
     inst.builder = data.builder
 
+    if inst.builder ~= nil and inst.builder:IsValid() then
+        local pos = inst.builder:GetPosition()
+        local offset = FindWalkableOffset(pos, math.random()*TWOPI, 3, 12, false, false, nil, false, true)
+
+        if offset ~= nil then
+            pos = pos + offset
+            inst.Transform:SetPosition(pos:Get())
+        end
+    end
+
     inst:ListenForEvent("onremove", function(_) inst.builder = nil end, inst.builder)
 end
 
-local function MakeProxy(product)
+local function MakeProxy(prefabname, product)
     local proxy_prefabs = { product }
 
     local function finish_spawn(inst)
-        local product_instance = SpawnPrefab(product)
-        product_instance.Transform:SetPosition(inst.Transform:GetWorldPosition())
-        if inst.builder then
-            product_instance:PushEvent("spawnedbywormwoodproxy", inst.builder)
+        if inst.builder and inst.builder.components.petleash then
+            local x, y, z = inst.Transform:GetWorldPosition()
+            inst.builder.components.petleash:SpawnPetAt(x, y, z, product)
         end
     end
 
@@ -57,12 +66,14 @@ local function MakeProxy(product)
         local timer = inst:AddComponent("timer")
         timer:StartTimer(FINISH_SPAWN_TIMERNAME, SPAWN_LIFETIME)
 
+        inst.SoundEmitter:PlaySound("meta2/wormwood/animation_dropdown")
+
         return inst
     end
 
-    return Prefab("wormwood_mutantproxy_"..product, proxy_fn, assets, proxy_prefabs)
+    return Prefab(prefabname, proxy_fn, assets, proxy_prefabs)
 end
 
-return MakeProxy("carrat"),
-    MakeProxy("lightflier"),
-    MakeProxy("fruitdragon")
+return MakeProxy("wormwood_mutantproxy_carrat", "wormwood_carrat"),
+    MakeProxy("wormwood_mutantproxy_lightflier", "wormwood_lightflier"),
+    MakeProxy("wormwood_mutantproxy_fruitdragon", "wormwood_fruitdragon")

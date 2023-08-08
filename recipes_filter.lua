@@ -230,6 +230,7 @@ CRAFTING_FILTERS.CHARACTER.recipes =
     "armor_lunarplant_wormwood",
     "wormwood_sapling",
     "wormwood_berrybush",
+    "wormwood_berrybush2",
     "wormwood_juicyberrybush",
     "wormwood_reeds",
 	"wormwood_lureplant",
@@ -585,9 +586,6 @@ CRAFTING_FILTERS.TOOLS.recipes =
 	"goldenshovel",
 	"golden_farm_hoe",
 	"goldenpitchfork",
-	"pickaxe_lunarplant",
-	"shovel_lunarplant",
-	"voidcloth_scythe",
 	"trap",
 	"birdtrap",
 	"bugnet",
@@ -702,10 +700,7 @@ CRAFTING_FILTERS.WEAPONS.recipes =
 	"whip",
 	"nightstick",
 	"nightsword",
-	"sword_lunarplant",
-	"voidcloth_scythe",
 	"sleepbomb",
-	"bomb_lunarplant",
 	"blowdart_pipe",
 	"blowdart_fire",
 	"blowdart_yellow",
@@ -714,7 +709,6 @@ CRAFTING_FILTERS.WEAPONS.recipes =
 	"trident",
 	"firestaff",
 	"icestaff",
-	"staff_lunarplant",
 	"gunpowder",
 	"panflute",
 	"trap_teeth",
@@ -741,10 +735,6 @@ CRAFTING_FILTERS.ARMOUR.recipes =
 	"beehat",
 	"armordreadstone",
 	"dreadstonehat",
-	"armor_lunarplant",
-	"lunarplanthat",
-	"armor_voidcloth",
-	"voidclothhat",
 }
 
 CRAFTING_FILTERS.CLOTHING.recipes =
@@ -764,7 +754,6 @@ CRAFTING_FILTERS.CLOTHING.recipes =
 	"minifan",
 	"grass_umbrella",
 	"umbrella",
-	"voidcloth_umbrella",
 	"featherfan",
 	"flowerhat",
 	"goggleshat",
@@ -850,7 +839,6 @@ CRAFTING_FILTERS.GARDENING.recipes =
 	"farm_plow_item",
 	"farm_hoe",
 	"golden_farm_hoe",
-	"shovel_lunarplant",
 	"wateringcan",
 	"premiumwateringcan",
 	"fertilizer",
@@ -1056,7 +1044,7 @@ CRAFTING_FILTERS.STRUCTURES.recipes =
 	"minisign_item",
 
 	"support_pillar_scaffold",
-
+	"support_pillar_dreadstone_scaffold",
 }
 
 CRAFTING_FILTERS.MAGIC.recipes =
@@ -1148,7 +1136,6 @@ CRAFTING_FILTERS.SUMMER.recipes =
 	"minifan",
 	"grass_umbrella",
 	"umbrella",
-	"voidcloth_umbrella",
 	"featherfan",
 
 	"reflectivevest",
@@ -1181,7 +1168,6 @@ CRAFTING_FILTERS.RAIN.recipes =
 {
 	"grass_umbrella",
 	"umbrella",
-	"voidcloth_umbrella",
 	"raincoat",
 	"balloonhat",
 	"strawhat",

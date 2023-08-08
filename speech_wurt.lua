@@ -905,8 +905,14 @@ return{
     },
     ANNOUNCE_WOLFGANG_WIMPY_COACHING = "only_used_by_wolfgang",
     ANNOUNCE_WOLFGANG_MIGHTY_COACHING = "only_used_by_wolfang",
-    ANNOUNCE_WOLFGANG_BEGING_COACHING = "only_used_by_wolfang",
+    ANNOUNCE_WOLFGANG_BEGIN_COACHING = "only_used_by_wolfang",
     ANNOUNCE_WOLFGANG_END_COACHING = "only_used_by_wolfang",
+    ANNOUNCE_WOLFGANG_NOTEAM = 
+    {
+        "only_used_by_wolfang",
+        "only_used_by_wolfang",
+        "only_used_by_wolfang",
+    },
 
 	BATTLECRY =
 	{
@@ -4818,6 +4824,8 @@ return{
 		PICKAXE_LUNARPLANT = "It real good at breaking stuff.",
 		SHOVEL_LUNARPLANT = "Good scooper-upper, florp.",
 
+		BROKEN_FORGEDITEM = "Didn't break it!! Was someone else!",
+
         PUNCHINGBAG = "Allowed to hit it? Yay!!",
 
         -- Rifts 2
@@ -4875,6 +4883,11 @@ return{
         SUPPORT_PILLAR_COMPLETE = "Made with own two claws!",
         SUPPORT_PILLAR_BROKEN = "Didn't do it!",
 
+		SUPPORT_PILLAR_DREADSTONE_SCAFFOLD = "Need rocks! MORE ROCKS!!",
+		SUPPORT_PILLAR_DREADSTONE = "Hey, stop it! Not allowed to break, florp!",
+		SUPPORT_PILLAR_DREADSTONE_COMPLETE = "Pretty pretty pillar, florp!",
+		SUPPORT_PILLAR_DREADSTONE_BROKEN = "Glorp! Found it like that.",
+
         WOLFGANG_WHISTLE = "Shiny... maybe he not mind if me borrow...",
     },
 
@@ -4892,7 +4905,6 @@ return{
     DESCRIBE_PLANTSTRESSORMOISTURE = "Need water!",
     DESCRIBE_PLANTSTRESSORNUTRIENTS = "Need plant food.",
     DESCRIBE_PLANTSTRESSORHAPPINESS = "Wicker-lady say plant like talking to...",
-    DESCRIBE_PLANT_IDENTIFIED = "only_used_by_wormwood",
 
     EAT_FOOD =
     {

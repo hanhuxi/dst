@@ -915,8 +915,14 @@ return {
     },
     ANNOUNCE_WOLFGANG_WIMPY_COACHING = "only_used_by_wolfgang",
     ANNOUNCE_WOLFGANG_MIGHTY_COACHING = "only_used_by_wolfgang",
-    ANNOUNCE_WOLFGANG_BEGING_COACHING = "only_used_by_wolfgang",
+    ANNOUNCE_WOLFGANG_BEGIN_COACHING = "only_used_by_wolfgang",
     ANNOUNCE_WOLFGANG_END_COACHING = "only_used_by_wolfgang",
+    ANNOUNCE_WOLFGANG_NOTEAM = 
+    {
+        "only_used_by_wolfgang",
+        "only_used_by_wolfgang",
+        "only_used_by_wolfgang",
+    },
 
 	BATTLECRY =
 	{
@@ -4828,6 +4834,8 @@ return {
 		PICKAXE_LUNARPLANT = "Smashing!",
 		SHOVEL_LUNARPLANT = "The dirt displacing possibilities are endless!",
 
+		BROKEN_FORGEDITEM = "It's broken, but I think I could repair it.",
+
         PUNCHINGBAG = "It comes with a finely calibrated ouch-o-meter.",
 
         -- Rifts 2
@@ -4885,6 +4893,11 @@ return {
         SUPPORT_PILLAR_COMPLETE = "It fills me with confidence.",
         SUPPORT_PILLAR_BROKEN = "You were once tall and strong.",
 
+		SUPPORT_PILLAR_DREADSTONE_SCAFFOLD = "It's all under wraps for now.",
+		SUPPORT_PILLAR_DREADSTONE = "I should really get around to fixing that.",
+		SUPPORT_PILLAR_DREADSTONE_COMPLETE = "That looks dreadfully strong.",
+		SUPPORT_PILLAR_DREADSTONE_BROKEN = "How dreadful.",
+
         WOLFGANG_WHISTLE = "It gives me terrible flashbacks to the gym classes of my youth...",
     },
 
@@ -4902,7 +4915,6 @@ return {
     DESCRIBE_PLANTSTRESSORMOISTURE = "This looks really dehydrated.",
     DESCRIBE_PLANTSTRESSORNUTRIENTS = "This poor plant needs nutrients!",
     DESCRIBE_PLANTSTRESSORHAPPINESS = "It's hungry for some good conversation.",
-    DESCRIBE_PLANT_IDENTIFIED = "only_used_by_wormwood",
 
     EAT_FOOD =
     {
